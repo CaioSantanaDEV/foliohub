@@ -1366,6 +1366,279 @@ public record MacroeconomicIndicatorsDto(
 ) {
 }`,
     },
+    {
+      id: 'service-portfolio',
+      name: 'PortfolioService.java',
+      category: 'Service',
+      path: 'src/main/java/com/foliohub/service/PortfolioService.java',
+      language: 'java',
+      description: 'Cálculo de Preço Médio ponderado (B3/Receita Federal) e consolidação patrimonial com cotações a mercado.',
+      code: `package com.foliohub.service;
+
+import com.foliohub.domain.constants.FinancialConstants;
+import com.foliohub.domain.dto.PortfolioConsolidationDto;
+import com.foliohub.domain.dto.StockPositionDetailDto;
+import com.foliohub.domain.dto.StockQuoteDto;
+import com.foliohub.domain.model.StockTransaction;
+import com.foliohub.domain.model.enums.TransactionType;
+import com.foliohub.repository.StockTransactionRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class PortfolioService {
+
+    private final StockTransactionRepository stockTransactionRepository;
+    private final MarketDataService marketDataService;
+
+    public PortfolioService(StockTransactionRepository stockTransactionRepository,
+                            MarketDataService marketDataService) {
+        this.stockTransactionRepository = stockTransactionRepository;
+        this.marketDataService = marketDataService;
+    }
+
+    /**
+     * O Preço Médio ponderado incorpora taxas de corretagem no custo de aquisição.
+     * Vendas parciais reduzem proporcionalmente a quantidade sem alterar o PM unitário restante.
+     * Quando a posição é totalmente liquidada, o custo acumulado é zerado.
+     */
+    public BigDecimal calculateWeightedAveragePrice(List<StockTransaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            return BigDecimal.ZERO.setScale(FinancialConstants.UNIT_PRICE_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+        }
+
+        List<StockTransaction> chronological = transactions.stream()
+                .sorted(Comparator.comparing(StockTransaction::getOperationDate))
+                .toList();
+
+        BigDecimal runningQuantity = BigDecimal.ZERO.setScale(FinancialConstants.QUANTITY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+        BigDecimal runningCost = BigDecimal.ZERO.setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+        BigDecimal averagePrice = BigDecimal.ZERO.setScale(FinancialConstants.UNIT_PRICE_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        for (StockTransaction tx : chronological) {
+            BigDecimal qty = tx.getQuantity();
+
+            if (tx.getType() == TransactionType.COMPRA) {
+                BigDecimal txCost = tx.getUnitPrice()
+                        .multiply(qty)
+                        .add(tx.getBrokerageFees() != null ? tx.getBrokerageFees() : BigDecimal.ZERO)
+                        .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+                runningQuantity = runningQuantity.add(qty);
+                runningCost = runningCost.add(txCost);
+
+                if (runningQuantity.compareTo(BigDecimal.ZERO) > 0) {
+                    averagePrice = runningCost.divide(
+                            runningQuantity,
+                            FinancialConstants.UNIT_PRICE_SCALE,
+                            FinancialConstants.FINANCIAL_ROUNDING_MODE
+                    );
+                }
+            } else if (tx.getType() == TransactionType.VENDA) {
+                runningQuantity = runningQuantity.subtract(qty);
+
+                if (runningQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+                    runningQuantity = BigDecimal.ZERO.setScale(FinancialConstants.QUANTITY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+                    runningCost = BigDecimal.ZERO.setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+                    averagePrice = BigDecimal.ZERO.setScale(FinancialConstants.UNIT_PRICE_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+                } else {
+                    runningCost = runningQuantity.multiply(averagePrice)
+                            .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+                }
+            }
+        }
+
+        return averagePrice;
+    }
+}`,
+    },
+    {
+      id: 'service-fixed-income-engine',
+      name: 'FixedIncomeEngineService.java',
+      category: 'Service',
+      path: 'src/main/java/com/foliohub/service/FixedIncomeEngineService.java',
+      language: 'java',
+      description: 'Motor de cálculo com tabela regressiva de IR (Lei 11.033/2004), isenção LCI/LCA e projeção com aportes recorrentes.',
+      code: `package com.foliohub.service;
+
+import com.foliohub.domain.constants.FinancialConstants;
+import com.foliohub.domain.dto.FixedIncomeProjectionRequest;
+import com.foliohub.domain.dto.FixedIncomeProjectionResponse;
+import com.foliohub.domain.dto.FixedIncomeTaxCalculationDto;
+import com.foliohub.domain.model.enums.FixedIncomeType;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+
+@Service
+public class FixedIncomeEngineService {
+
+    private static final BigDecimal TAX_RATE_UP_TO_180_DAYS = new BigDecimal("0.2250");
+    private static final BigDecimal TAX_RATE_181_TO_360_DAYS = new BigDecimal("0.2000");
+    private static final BigDecimal TAX_RATE_361_TO_720_DAYS = new BigDecimal("0.1750");
+    private static final BigDecimal TAX_RATE_ABOVE_720_DAYS = new BigDecimal("0.1500");
+
+    /**
+     * Aplica a tabela regressiva da Lei nº 11.033/2004 sobre investimentos em renda fixa.
+     * Títulos como LCI e LCA são isentos de IR para pessoa física.
+     */
+    public BigDecimal calculateTaxRate(FixedIncomeType type, long days) {
+        if (type == FixedIncomeType.LCI || type == FixedIncomeType.LCA) {
+            return BigDecimal.ZERO.setScale(FinancialConstants.RATE_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+        }
+
+        if (days <= 180) {
+            return TAX_RATE_UP_TO_180_DAYS;
+        } else if (days <= 360) {
+            return TAX_RATE_181_TO_360_DAYS;
+        } else if (days <= 720) {
+            return TAX_RATE_361_TO_720_DAYS;
+        } else {
+            return TAX_RATE_ABOVE_720_DAYS;
+        }
+    }
+
+    /**
+     * O imposto de renda retido na fonte incide estritamente sobre o rendimento nominal positivo.
+     */
+    public FixedIncomeTaxCalculationDto calculateIncomeTax(FixedIncomeType type, long days, BigDecimal grossProfit) {
+        boolean exempt = (type == FixedIncomeType.LCI || type == FixedIncomeType.LCA);
+        BigDecimal taxRate = calculateTaxRate(type, days);
+
+        BigDecimal profit = grossProfit != null && grossProfit.compareTo(BigDecimal.ZERO) > 0
+                ? grossProfit
+                : BigDecimal.ZERO.setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal taxAmount = exempt
+                ? BigDecimal.ZERO.setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                : profit.multiply(taxRate).setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal taxRatePercentage = taxRate.multiply(new BigDecimal("100"))
+                .setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        return new FixedIncomeTaxCalculationDto(days, type, profit, taxRatePercentage, taxAmount, exempt);
+    }
+}`,
+    },
+    {
+      id: 'test-portfolio',
+      name: 'PortfolioServiceTest.java',
+      category: 'Test',
+      path: 'src/test/java/com/foliohub/service/PortfolioServiceTest.java',
+      language: 'java',
+      description: 'Testes unitários com JUnit 5 e AssertJ validando o Preço Médio ponderado, taxas de corretagem e zeragem.',
+      code: `package com.foliohub.service;
+
+import com.foliohub.domain.model.StockTransaction;
+import com.foliohub.domain.model.User;
+import com.foliohub.domain.model.enums.TransactionType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ExtendWith(MockitoExtension.class)
+class PortfolioServiceTest {
+
+    @InjectMocks
+    private PortfolioService portfolioService;
+
+    @Test
+    @DisplayName("Deve calcular o Preço Médio ponderado com compras sucessivas sem taxas")
+    void shouldCalculateWeightedAveragePriceForMultiplePurchases() {
+        User user = new User(UUID.randomUUID(), "Investidor", "investidor@foliohub.com", "hash");
+        StockTransaction tx1 = new StockTransaction(user, "PETR4", TransactionType.COMPRA, new BigDecimal("100"), new BigDecimal("30.00"), LocalDate.of(2024, 1, 10));
+        StockTransaction tx2 = new StockTransaction(user, "PETR4", TransactionType.COMPRA, new BigDecimal("100"), new BigDecimal("40.00"), LocalDate.of(2024, 2, 10));
+
+        BigDecimal averagePrice = portfolioService.calculateWeightedAveragePrice(List.of(tx1, tx2));
+
+        assertThat(averagePrice).isEqualByComparingTo(new BigDecimal("35.0000"));
+    }
+
+    @Test
+    @DisplayName("Venda parcial não deve alterar o Preço Médio unitário das cotas restantes")
+    void partialSaleShouldNotChangeAveragePriceOfRemainingShares() {
+        User user = new User(UUID.randomUUID(), "Investidor", "investidor@foliohub.com", "hash");
+        StockTransaction buy = new StockTransaction(user, "WEGE3", TransactionType.COMPRA, new BigDecimal("200"), new BigDecimal("20.00"), LocalDate.of(2024, 1, 5));
+        StockTransaction sell = new StockTransaction(user, "WEGE3", TransactionType.VENDA, new BigDecimal("50"), new BigDecimal("35.00"), LocalDate.of(2024, 3, 10));
+
+        BigDecimal averagePrice = portfolioService.calculateWeightedAveragePrice(List.of(buy, sell));
+
+        assertThat(averagePrice).isEqualByComparingTo(new BigDecimal("20.0000"));
+    }
+}`,
+    },
+    {
+      id: 'test-fixed-income-engine',
+      name: 'FixedIncomeEngineServiceTest.java',
+      category: 'Test',
+      path: 'src/test/java/com/foliohub/service/FixedIncomeEngineServiceTest.java',
+      language: 'java',
+      description: 'Testes unitários com JUnit 5 parametrizado e AssertJ validando tabela regressiva de IR e isenção LCI/LCA.',
+      code: `package com.foliohub.service;
+
+import com.foliohub.domain.dto.FixedIncomeTaxCalculationDto;
+import com.foliohub.domain.model.enums.FixedIncomeType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class FixedIncomeEngineServiceTest {
+
+    private final FixedIncomeEngineService engineService = new FixedIncomeEngineService();
+
+    @ParameterizedTest(name = "Prazo de {0} dias deve ter alíquota de {1}%")
+    @CsvSource({
+            "90, 22.50",
+            "180, 22.50",
+            "181, 20.00",
+            "360, 20.00",
+            "361, 17.50",
+            "720, 17.50",
+            "721, 15.00",
+            "1000, 15.00"
+    })
+    void shouldReturnCorrectRegressiveTaxRateForCdb(long days, String expectedRatePercent) {
+        BigDecimal rate = engineService.calculateTaxRate(FixedIncomeType.CDB, days);
+        BigDecimal expectedDecimal = new BigDecimal(expectedRatePercent).divide(new BigDecimal("100"));
+
+        assertThat(rate).isEqualByComparingTo(expectedDecimal);
+    }
+
+    @Test
+    @DisplayName("LCI e LCA devem ser rigorosamente isentas de Imposto de Renda")
+    void lciAndLcaMustBeTaxExempt() {
+        BigDecimal lciRate = engineService.calculateTaxRate(FixedIncomeType.LCI, 90);
+        BigDecimal lcaRate = engineService.calculateTaxRate(FixedIncomeType.LCA, 750);
+
+        assertThat(lciRate).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(lcaRate).isEqualByComparingTo(BigDecimal.ZERO);
+
+        FixedIncomeTaxCalculationDto taxLci = engineService.calculateIncomeTax(FixedIncomeType.LCI, 100, new BigDecimal("1000.00"));
+        assertThat(taxLci.exempt()).isTrue();
+        assertThat(taxLci.taxAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+}`,
+    },
   ];
 
   // Adicionar nova transação
