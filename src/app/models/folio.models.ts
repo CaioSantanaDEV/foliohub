@@ -21,6 +21,28 @@ export interface StockTransactionDto {
   operationDate: string;
 }
 
+export interface StockTransactionCreateDto {
+  userId: string;
+  ticker: string;
+  type: TransactionType;
+  quantity: number;
+  unitPrice: number;
+  brokerageFees?: number;
+  operationDate: string;
+}
+
+export interface StockTransactionResponseDto {
+  id: string;
+  userId: string;
+  ticker: string;
+  type: TransactionType;
+  quantity: number;
+  unitPrice: number;
+  totalValue: number;
+  brokerageFees: number;
+  operationDate: string;
+}
+
 export interface StockPositionSummaryDto {
   ticker: string;
   companyName: string;
@@ -40,12 +62,118 @@ export interface FixedIncomePositionDto {
   issuer: string;
   type: FixedIncomeType;
   indexer: IndexerType;
-  contractedRate: number; // e.g. 118 (% do CDI) or 12.5 (% a.a.) or 6.45 (IPCA +)
+  contractedRate: number;
   investedAmount: number;
   currentAmount: number;
   investmentDate: string;
   dueDate: string;
   active: boolean;
+}
+
+export interface FixedIncomePositionCreateDto {
+  userId: string;
+  assetName: string;
+  issuer: string;
+  type: FixedIncomeType;
+  indexer: IndexerType;
+  contractedRate: number;
+  investedAmount: number;
+  investmentDate: string;
+  dueDate: string;
+}
+
+export interface FixedIncomePositionResponseDto {
+  id: string;
+  userId: string;
+  assetName: string;
+  issuer: string;
+  type: FixedIncomeType;
+  indexer: IndexerType;
+  contractedRate: number;
+  investedAmount: number;
+  currentAmount: number;
+  investmentDate: string;
+  dueDate: string;
+  active: boolean;
+}
+
+export interface StockQuoteDto {
+  ticker: string;
+  companyName: string;
+  regularMarketPrice: number;
+  regularMarketChangePercent: number;
+  regularMarketDayLow: number;
+  regularMarketDayHigh: number;
+  priceEarnings?: number;
+  priceToBook?: number;
+  dividendYield?: number;
+  returnOnEquity?: number;
+  netMargin?: number;
+  netDebtToEbitda?: number;
+  volume24h?: string;
+  marketCap?: string;
+  cachedAt?: string;
+}
+
+export interface MacroIndicatorsDto {
+  selic: number;
+  cdi: number;
+  ipca12m: number;
+  dolar: number;
+  updatedAt: string;
+}
+
+export interface AssetAllocationDto {
+  stocksPercent: number;
+  fixedIncomePercent: number;
+  stocksTotal: number;
+  fixedIncomeTotal: number;
+}
+
+export interface PortfolioSummaryDto {
+  userId: string;
+  totalNetWorth: number;
+  totalInvested: number;
+  totalProfitLoss: number;
+  totalProfitLossPercent: number;
+  allocation: AssetAllocationDto;
+  stocksCount: number;
+  fixedIncomeCount: number;
+}
+
+export interface FixedIncomeSimulationRequestDto {
+  initialAmount: number;
+  monthlyDeposit: number;
+  periodMonths: number;
+  ratePercent: number;
+  assetType: FixedIncomeType;
+  indexer: IndexerType;
+}
+
+export interface FixedIncomeSimulationResponseDto {
+  days: number;
+  months: number;
+  totalInvested: number;
+  grossBalance: number;
+  grossEarnings: number;
+  irTaxRatePercent: number;
+  isExempt: boolean;
+  taxDeduction: number;
+  netBalance: number;
+  netProfit: number;
+  netProfitPercent: number;
+  balancePoupanca: number;
+  diffPoupanca: number;
+}
+
+export interface ProblemDetail {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance?: string;
+  timestamp?: string;
+  invalidParams?: { field: string; message: string }[];
 }
 
 export interface BackendCodeFile {

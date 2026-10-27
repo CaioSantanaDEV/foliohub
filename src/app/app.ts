@@ -3,13 +3,14 @@ import {
   Component,
   computed,
   inject,
+  OnInit,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterOutlet } from '@angular/router';
 import { FolioService, roundHalfEven } from './services/folio.service';
+import { PortfolioStateService } from './services/portfolio-state.service';
 import {
   BackendCodeFile,
   FixedIncomeType,
@@ -17,6 +18,9 @@ import {
   StockPositionSummaryDto,
   TransactionType,
 } from './models/folio.models';
+import { StockDetail } from './components/stock-detail/stock-detail';
+import { PortfolioDashboard } from './components/portfolio-dashboard/portfolio-dashboard';
+import { FixedIncomeCalculator } from './components/fixed-income-calculator/fixed-income-calculator';
 
 export type ActiveTab = 'overview' | 'stocks' | 'fixed_income' | 'calculator' | 'precision' | 'backend';
 
@@ -41,12 +45,24 @@ interface FundamentalIndicator {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterOutlet],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    StockDetail,
+    PortfolioDashboard,
+    FixedIncomeCalculator,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
+export class App implements OnInit {
   readonly folioService = inject(FolioService);
+  readonly portfolioState = inject(PortfolioStateService);
+
+  ngOnInit(): void {
+    this.portfolioState.loadPortfolio(this.folioService.currentUser().id).subscribe();
+  }
 
   // Navegação principal estilo Status Invest
   readonly activeTab = signal<ActiveTab>('overview');
@@ -474,6 +490,15 @@ export class App {
     }
   }
 
+  onInspectStock(ticker: string): void {
+    this.selectedStockTicker.set(ticker);
+    this.selectTab('stocks');
+  }
+
+  onAddStockRequested(ticker: string): void {
+    this.openAddStockModal(ticker);
+  }
+
   openAddStockModal(tickerPrefill?: string) {
     if (tickerPrefill) {
       this.stockForm.patchValue({ ticker: tickerPrefill });
@@ -489,6 +514,20 @@ export class App {
     if (this.stockForm.invalid) return;
 
     const raw = this.stockForm.getRawValue();
+    const userId = this.folioService.currentUser().id;
+
+    this.portfolioState
+      .addStockTransaction({
+        userId,
+        ticker: raw.ticker.toUpperCase().trim(),
+        type: raw.type,
+        quantity: Number(raw.quantity),
+        unitPrice: Number(raw.unitPrice),
+        brokerageFees: Number(raw.brokerageFees),
+        operationDate: raw.operationDate,
+      })
+      .subscribe();
+
     this.folioService.addStockTransaction({
       ticker: raw.ticker.toUpperCase().trim(),
       type: raw.type,
@@ -513,6 +552,22 @@ export class App {
     if (this.fixedIncomeForm.invalid) return;
 
     const raw = this.fixedIncomeForm.getRawValue();
+    const userId = this.folioService.currentUser().id;
+
+    this.portfolioState
+      .addFixedIncomePosition({
+        userId,
+        assetName: raw.assetName.trim(),
+        issuer: raw.issuer.trim(),
+        type: raw.type,
+        indexer: raw.indexer,
+        contractedRate: Number(raw.contractedRate),
+        investedAmount: Number(raw.investedAmount),
+        investmentDate: raw.investmentDate,
+        dueDate: raw.dueDate,
+      })
+      .subscribe();
+
     this.folioService.addFixedIncomePosition({
       assetName: raw.assetName.trim(),
       issuer: raw.issuer.trim(),
