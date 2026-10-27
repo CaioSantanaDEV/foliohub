@@ -262,7 +262,7 @@ public class PortfolioService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
 
-        BigDecimal stockEquity = stockConsolidation.totalCurrentValue();
+        BigDecimal stockEquity = stockConsolidation.TotalCurrentValue();
         BigDecimal stockInvested = stockConsolidation.totalInvested();
 
         BigDecimal totalEquity = stockEquity.add(fixedIncomeEquity)

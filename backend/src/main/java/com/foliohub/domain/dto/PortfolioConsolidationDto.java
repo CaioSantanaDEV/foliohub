@@ -14,4 +14,7 @@ public record PortfolioConsolidationDto(
         List<StockPositionDetailDto> positions,
         Instant consolidatedAt
 ) {
+    public BigDecimal TotalCurrentValue() {
+        return this.totalMarketValue;
+    }
 }

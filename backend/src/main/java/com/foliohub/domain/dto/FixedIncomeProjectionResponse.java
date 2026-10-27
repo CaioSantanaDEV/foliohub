@@ -10,7 +10,10 @@ public record FixedIncomeProjectionResponse(
         BigDecimal taxAmount,
         BigDecimal netAmount,
         BigDecimal netProfit,
-        long totalDays,
+        long estimatedDays,
         boolean exempt
 ) {
+    public boolean taxExempt() {
+        return this.exempt;
+    }
 }

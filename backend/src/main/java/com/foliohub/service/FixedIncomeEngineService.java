@@ -127,11 +127,11 @@ public class FixedIncomeEngineService {
 
     public com.foliohub.domain.dto.FixedIncomeSimulationResultDto simulateWithBenchmark(com.foliohub.domain.dto.FixedIncomeSimulationRequestDto request) {
         FixedIncomeProjectionResponse simulated = projectInvestment(new FixedIncomeProjectionRequest(
-                request.type(),
                 request.initialAmount(),
                 request.monthlyContribution(),
                 request.annualRatePercentage(),
-                request.months()
+                request.months(),
+                request.type()
         ));
 
         BigDecimal benchmarkRate = request.benchmarkAnnualRatePercentage() != null
@@ -139,11 +139,11 @@ public class FixedIncomeEngineService {
                 : new BigDecimal("10.75");
 
         FixedIncomeProjectionResponse benchmark = projectInvestment(new FixedIncomeProjectionRequest(
-                FixedIncomeType.CDB,
                 request.initialAmount(),
                 request.monthlyContribution(),
                 benchmarkRate,
-                request.months()
+                request.months(),
+                FixedIncomeType.CDB
         ));
 
         BigDecimal advantage = simulated.netAmount().subtract(benchmark.netAmount())
