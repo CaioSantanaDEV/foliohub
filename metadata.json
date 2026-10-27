@@ -1,0 +1,6 @@
+{
+  "name": "FolioHub - Gestão Patrimonial B3",
+  "description": "Sistema de gestão patrimonial e análise de ativos da B3 com Spring Boot 3, Java 21 e Angular.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
