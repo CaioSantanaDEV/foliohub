@@ -51,7 +51,7 @@ export interface FixedIncomePositionDto {
 export interface BackendCodeFile {
   id: string;
   name: string;
-  category: 'Entity' | 'Repository' | 'Migration' | 'Config' | 'Enum' | 'Service' | 'Client' | 'DTO' | 'Test';
+  category: 'Entity' | 'Repository' | 'Migration' | 'Config' | 'Enum' | 'Service' | 'Client' | 'DTO' | 'Test' | 'Controller' | 'Exception';
   path: string;
   language: string;
   description: string;

@@ -585,7 +585,7 @@
           <div class="lg:col-span-4 space-y-3">
             <!-- Category pills -->
             <div class="flex flex-wrap gap-1.5 pb-2">
-              @for (cat of ['TODOS', 'Service', 'Test', 'Client', 'Config', 'DTO', 'Entity', 'Repository', 'Migration']; track cat) {
+              @for (cat of ['TODOS', 'Controller', 'Service', 'Exception', 'Test', 'DTO', 'Entity', 'Repository', 'Client', 'Config', 'Migration']; track cat) {
                 <button
                   type="button"
                   (click)="filterCategory(cat)"
@@ -614,10 +614,12 @@
                       <span>{{ file.name }}</span>
                     </span>
                     <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold"
-                      [class]="file.category === 'Entity' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
+                      [class]="file.category === 'Controller' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                               file.category === 'Exception' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                               file.category === 'Entity' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
                                file.category === 'Repository' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' :
                                file.category === 'Migration' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                               'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'"
+                               'bg-slate-700/50 text-slate-300 border border-slate-600/30'"
                     >
                       {{ file.category }}
                     </span>

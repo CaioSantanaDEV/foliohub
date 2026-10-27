@@ -20,11 +20,14 @@ public class PortfolioService {
 
     private final StockTransactionRepository stockTransactionRepository;
     private final MarketDataService marketDataService;
+    private final com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository;
 
     public PortfolioService(StockTransactionRepository stockTransactionRepository,
-                            MarketDataService marketDataService) {
+                            MarketDataService marketDataService,
+                            com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository) {
         this.stockTransactionRepository = stockTransactionRepository;
         this.marketDataService = marketDataService;
+        this.fixedIncomePositionRepository = fixedIncomePositionRepository;
     }
 
     /**
@@ -238,6 +241,69 @@ public class PortfolioService {
                 totalProfitLossAmount,
                 totalProfitLossPercentage,
                 positionsWithWeight,
+                Instant.now()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public com.foliohub.domain.dto.PortfolioSummaryDto getPortfolioSummary(UUID userId) {
+        PortfolioConsolidationDto stockConsolidation = consolidatePortfolio(userId);
+
+        List<com.foliohub.domain.model.FixedIncomePosition> fixedIncomePositions =
+                fixedIncomePositionRepository.findByUserIdAndActiveTrueOrderByDueDateAsc(userId);
+
+        BigDecimal fixedIncomeInvested = fixedIncomePositions.stream()
+                .map(com.foliohub.domain.model.FixedIncomePosition::getInvestedAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal fixedIncomeEquity = fixedIncomePositions.stream()
+                .map(com.foliohub.domain.model.FixedIncomePosition::getCurrentAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal stockEquity = stockConsolidation.totalCurrentValue();
+        BigDecimal stockInvested = stockConsolidation.totalInvested();
+
+        BigDecimal totalEquity = stockEquity.add(fixedIncomeEquity)
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal totalInvested = stockInvested.add(fixedIncomeInvested)
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal totalProfitLoss = totalEquity.subtract(totalInvested)
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal totalProfitLossPercentage = totalInvested.compareTo(BigDecimal.ZERO) > 0
+                ? totalProfitLoss.divide(totalInvested, FinancialConstants.INTERMEDIATE_CALCULATION_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                        .multiply(new BigDecimal("100"))
+                        .setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                : BigDecimal.ZERO.setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal stockPercentage = totalEquity.compareTo(BigDecimal.ZERO) > 0
+                ? stockEquity.divide(totalEquity, FinancialConstants.INTERMEDIATE_CALCULATION_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                        .multiply(new BigDecimal("100"))
+                        .setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                : BigDecimal.ZERO.setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        BigDecimal fixedIncomePercentage = totalEquity.compareTo(BigDecimal.ZERO) > 0
+                ? fixedIncomeEquity.divide(totalEquity, FinancialConstants.INTERMEDIATE_CALCULATION_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                        .multiply(new BigDecimal("100"))
+                        .setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+                : BigDecimal.ZERO.setScale(2, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        return new com.foliohub.domain.dto.PortfolioSummaryDto(
+                userId,
+                totalEquity,
+                totalInvested,
+                totalProfitLoss,
+                totalProfitLossPercentage,
+                stockEquity,
+                stockPercentage,
+                fixedIncomeEquity,
+                fixedIncomePercentage,
+                stockConsolidation.positions().size(),
+                fixedIncomePositions.size(),
                 Instant.now()
         );
     }

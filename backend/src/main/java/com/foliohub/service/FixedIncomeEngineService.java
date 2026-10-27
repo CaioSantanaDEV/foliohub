@@ -124,4 +124,44 @@ public class FixedIncomeEngineService {
                 taxCalculation.exempt()
         );
     }
+
+    public com.foliohub.domain.dto.FixedIncomeSimulationResultDto simulateWithBenchmark(com.foliohub.domain.dto.FixedIncomeSimulationRequestDto request) {
+        FixedIncomeProjectionResponse simulated = projectInvestment(new FixedIncomeProjectionRequest(
+                request.type(),
+                request.initialAmount(),
+                request.monthlyContribution(),
+                request.annualRatePercentage(),
+                request.months()
+        ));
+
+        BigDecimal benchmarkRate = request.benchmarkAnnualRatePercentage() != null
+                ? request.benchmarkAnnualRatePercentage()
+                : new BigDecimal("10.75");
+
+        FixedIncomeProjectionResponse benchmark = projectInvestment(new FixedIncomeProjectionRequest(
+                FixedIncomeType.CDB,
+                request.initialAmount(),
+                request.monthlyContribution(),
+                benchmarkRate,
+                request.months()
+        ));
+
+        BigDecimal advantage = simulated.netAmount().subtract(benchmark.netAmount())
+                .setScale(FinancialConstants.MONETARY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE);
+
+        return new com.foliohub.domain.dto.FixedIncomeSimulationResultDto(
+                request.type(),
+                simulated.totalInvested(),
+                simulated.grossAmount(),
+                simulated.grossProfit(),
+                simulated.taxRatePercentage(),
+                simulated.taxAmount(),
+                simulated.netAmount(),
+                simulated.netProfit(),
+                simulated.estimatedDays(),
+                simulated.taxExempt(),
+                benchmark.netAmount(),
+                advantage
+        );
+    }
 }

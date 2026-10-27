@@ -29,6 +29,9 @@ class PortfolioServiceTest {
     @Mock
     private MarketDataService marketDataService;
 
+    @Mock
+    private com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository;
+
     @InjectMocks
     private PortfolioService portfolioService;
 

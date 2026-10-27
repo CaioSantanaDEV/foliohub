@@ -30,7 +30,7 @@ export class FolioService {
   // Investidor de demonstração para portfólio
   readonly currentUser = signal<UserDto>({
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    name: 'Caio Santana (Tech Lead & Full Stack)',
+    name: 'Caio Santana',
     email: 'caiosantanaty@gmail.com',
   });
 
@@ -286,6 +286,618 @@ export class FolioService {
 
   // Repositório de Arquivos do Backend Spring Boot 3 & Persistência
   readonly backendFiles: BackendCodeFile[] = [
+    {
+      id: 'ctrl-stock-tx',
+      name: 'StockTransactionController.java',
+      category: 'Controller',
+      path: 'src/main/java/com/foliohub/controller/StockTransactionController.java',
+      language: 'java',
+      description: 'API RESTful para CRUD de ordens B3, validação estrita de custódia na venda e persistência com BigDecimal.',
+      code: `package com.foliohub.controller;
+
+import com.foliohub.domain.constants.FinancialConstants;
+import com.foliohub.domain.dto.StockTransactionCreateDto;
+import com.foliohub.domain.dto.StockTransactionResponseDto;
+import com.foliohub.domain.model.StockTransaction;
+import com.foliohub.domain.model.User;
+import com.foliohub.domain.model.enums.TransactionType;
+import com.foliohub.exception.BusinessRuleException;
+import com.foliohub.exception.ResourceNotFoundException;
+import com.foliohub.repository.StockTransactionRepository;
+import com.foliohub.repository.UserRepository;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/portfolio/stocks")
+public class StockTransactionController {
+
+    private final StockTransactionRepository stockTransactionRepository;
+    private final UserRepository userRepository;
+
+    public StockTransactionController(StockTransactionRepository stockTransactionRepository,
+                                    UserRepository userRepository) {
+        this.stockTransactionRepository = stockTransactionRepository;
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<StockTransactionResponseDto>> getTransactionsByUser(@RequestParam UUID userId) {
+        List<StockTransactionResponseDto> transactions = stockTransactionRepository
+                .findByUserIdOrderByOperationDateDesc(userId)
+                .stream()
+                .map(StockTransactionResponseDto::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(transactions);
+    }
+
+    @PostMapping
+    @Transactional
+    public ResponseEntity<StockTransactionResponseDto> createTransaction(
+            @Valid @RequestBody StockTransactionCreateDto dto
+    ) {
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", dto.userId()));
+
+        if (dto.type() == TransactionType.VENDA) {
+            validateCustodyBalanceForSale(dto);
+        }
+
+        StockTransaction transaction = new StockTransaction(
+                user,
+                dto.ticker(),
+                dto.type(),
+                dto.quantity(),
+                dto.unitPrice(),
+                dto.operationDate()
+        );
+
+        if (dto.brokerageFees() != null) {
+            transaction.setBrokerageFees(dto.brokerageFees());
+        }
+
+        StockTransaction saved = stockTransactionRepository.save(transaction);
+        return ResponseEntity.status(HttpStatus.CREATED).body(StockTransactionResponseDto.fromEntity(saved));
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteTransaction(@PathVariable UUID id) {
+        if (!stockTransactionRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Transação de ações", id);
+        }
+        stockTransactionRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Vendas a descoberto no mercado à vista da B3 sem custódia prévia são rejeitadas.
+     * O saldo de cotas acumulado até a data da operação deve suprir a quantidade da ordem de venda.
+     */
+    private void validateCustodyBalanceForSale(StockTransactionCreateDto dto) {
+        List<StockTransaction> existingTxs = stockTransactionRepository
+                .findByUserIdAndTickerOrderByOperationDateAsc(dto.userId(), dto.ticker());
+
+        BigDecimal currentBalance = BigDecimal.ZERO;
+        for (StockTransaction tx : existingTxs) {
+            if (tx.getType() == TransactionType.COMPRA) {
+                currentBalance = currentBalance.add(tx.getQuantity());
+            } else if (tx.getType() == TransactionType.VENDA) {
+                currentBalance = currentBalance.subtract(tx.getQuantity());
+            }
+        }
+
+        if (currentBalance.compareTo(dto.quantity()) < 0) {
+            throw new BusinessRuleException(String.format(
+                    "Saldo em custódia insuficiente para venda de %s cotas do ativo %s. Saldo disponível: %s.",
+                    dto.quantity().setScale(FinancialConstants.QUANTITY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE),
+                    dto.ticker(),
+                    currentBalance.setScale(FinancialConstants.QUANTITY_SCALE, FinancialConstants.FINANCIAL_ROUNDING_MODE)
+            ));
+        }
+    }
+}`,
+    },
+    {
+      id: 'ctrl-portfolio',
+      name: 'PortfolioController.java',
+      category: 'Controller',
+      path: 'src/main/java/com/foliohub/controller/PortfolioController.java',
+      language: 'java',
+      description: 'Endpoints /api/portfolio/summary e /api/portfolio/consolidation para cálculo consolidado de patrimônio e alocação.',
+      code: `package com.foliohub.controller;
+
+import com.foliohub.domain.dto.PortfolioConsolidationDto;
+import com.foliohub.domain.dto.PortfolioSummaryDto;
+import com.foliohub.service.PortfolioService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/portfolio")
+public class PortfolioController {
+
+    private final PortfolioService portfolioService;
+
+    public PortfolioController(PortfolioService portfolioService) {
+        this.portfolioService = portfolioService;
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<PortfolioSummaryDto> getPortfolioSummary(@RequestParam UUID userId) {
+        PortfolioSummaryDto summary = portfolioService.getPortfolioSummary(userId);
+        return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/consolidation")
+    public ResponseEntity<PortfolioConsolidationDto> getConsolidation(@RequestParam UUID userId) {
+        PortfolioConsolidationDto consolidation = portfolioService.consolidatePortfolio(userId);
+        return ResponseEntity.ok(consolidation);
+    }
+}`,
+    },
+    {
+      id: 'ctrl-fixed-calc',
+      name: 'FixedIncomeCalculatorController.java',
+      category: 'Controller',
+      path: 'src/main/java/com/foliohub/controller/FixedIncomeCalculatorController.java',
+      language: 'java',
+      description: 'Endpoint POST /api/calculator/fixed-income para projeção composta, cálculo de IR regressivo e benchmark contra CDI.',
+      code: `package com.foliohub.controller;
+
+import com.foliohub.domain.dto.FixedIncomeSimulationRequestDto;
+import com.foliohub.domain.dto.FixedIncomeSimulationResultDto;
+import com.foliohub.service.FixedIncomeEngineService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/calculator/fixed-income")
+public class FixedIncomeCalculatorController {
+
+    private final FixedIncomeEngineService fixedIncomeEngineService;
+
+    public FixedIncomeCalculatorController(FixedIncomeEngineService fixedIncomeEngineService) {
+        this.fixedIncomeEngineService = fixedIncomeEngineService;
+    }
+
+    @PostMapping
+    public ResponseEntity<FixedIncomeSimulationResultDto> simulateFixedIncome(
+            @Valid @RequestBody FixedIncomeSimulationRequestDto request
+    ) {
+        FixedIncomeSimulationResultDto result = fixedIncomeEngineService.simulateWithBenchmark(request);
+        return ResponseEntity.ok(result);
+    }
+}`,
+    },
+    {
+      id: 'ctrl-fixed-income',
+      name: 'FixedIncomePositionController.java',
+      category: 'Controller',
+      path: 'src/main/java/com/foliohub/controller/FixedIncomePositionController.java',
+      language: 'java',
+      description: 'Endpoints /api/portfolio/fixed-income para gestão de posições em CDB, LCI, LCA e Tesouro Direto.',
+      code: `package com.foliohub.controller;
+
+import com.foliohub.domain.dto.FixedIncomePositionCreateDto;
+import com.foliohub.domain.dto.FixedIncomePositionResponseDto;
+import com.foliohub.domain.model.FixedIncomePosition;
+import com.foliohub.domain.model.User;
+import com.foliohub.exception.BusinessRuleException;
+import com.foliohub.exception.ResourceNotFoundException;
+import com.foliohub.repository.FixedIncomePositionRepository;
+import com.foliohub.repository.UserRepository;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/portfolio/fixed-income")
+public class FixedIncomePositionController {
+
+    private final FixedIncomePositionRepository fixedIncomePositionRepository;
+    private final UserRepository userRepository;
+
+    public FixedIncomePositionController(FixedIncomePositionRepository fixedIncomePositionRepository,
+                                         UserRepository userRepository) {
+        this.fixedIncomePositionRepository = fixedIncomePositionRepository;
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<FixedIncomePositionResponseDto>> getPositionsByUser(@RequestParam UUID userId) {
+        List<FixedIncomePositionResponseDto> positions = fixedIncomePositionRepository
+                .findByUserIdAndActiveTrueOrderByDueDateAsc(userId)
+                .stream()
+                .map(FixedIncomePositionResponseDto::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(positions);
+    }
+
+    @PostMapping
+    @Transactional
+    public ResponseEntity<FixedIncomePositionResponseDto> createPosition(
+            @Valid @RequestBody FixedIncomePositionCreateDto dto
+    ) {
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", dto.userId()));
+
+        if (!dto.dueDate().isAfter(dto.investmentDate())) {
+            throw new BusinessRuleException("A data de vencimento do título deve ser estritamente posterior à data de aplicação.");
+        }
+
+        FixedIncomePosition position = new FixedIncomePosition(
+                user,
+                dto.assetName(),
+                dto.issuer(),
+                dto.type(),
+                dto.indexer(),
+                dto.contractedRate(),
+                dto.investedAmount(),
+                dto.investedAmount(),
+                dto.investmentDate(),
+                dto.dueDate()
+        );
+
+        FixedIncomePosition saved = fixedIncomePositionRepository.save(position);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FixedIncomePositionResponseDto.fromEntity(saved));
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> deletePosition(@PathVariable UUID id) {
+        FixedIncomePosition position = fixedIncomePositionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Posição de Renda Fixa", id));
+
+        fixedIncomePositionRepository.delete(position);
+        return ResponseEntity.noContent().build();
+    }
+}`,
+    },
+    {
+      id: 'ctrl-stock-market',
+      name: 'StockMarketController.java',
+      category: 'Controller',
+      path: 'src/main/java/com/foliohub/controller/StockMarketController.java',
+      language: 'java',
+      description: 'Endpoint GET /api/stocks/{ticker} com validação B3 e consulta resiliente via Brapi com Caffeine Cache.',
+      code: `package com.foliohub.controller;
+
+import com.foliohub.domain.dto.StockQuoteDto;
+import com.foliohub.service.MarketDataService;
+import jakarta.validation.constraints.Pattern;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/stocks")
+@Validated
+public class StockMarketController {
+
+    private final MarketDataService marketDataService;
+
+    public StockMarketController(MarketDataService marketDataService) {
+        this.marketDataService = marketDataService;
+    }
+
+    @GetMapping("/{ticker}")
+    public ResponseEntity<StockQuoteDto> getStockQuote(
+            @PathVariable
+            @Pattern(
+                    regexp = "^[A-Za-z0-9]{4,6}$",
+                    message = "O ticker informado não segue o padrão da B3 (ex: PETR4, VALE3, WEGE3, MXRF11)."
+            )
+            String ticker
+    ) {
+        StockQuoteDto quote = marketDataService.getStockQuote(ticker.trim().toUpperCase());
+        return ResponseEntity.ok(quote);
+    }
+}`,
+    },
+    {
+      id: 'exc-global-handler',
+      name: 'GlobalExceptionHandler.java',
+      category: 'Exception',
+      path: 'src/main/java/com/foliohub/exception/GlobalExceptionHandler.java',
+      language: 'java',
+      description: 'Tratamento global via @RestControllerAdvice retornando RFC 7807 Problem Details padronizado para erros de validação e domínio.',
+      code: `package com.foliohub.exception;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private static final URI URI_VALIDATION_ERROR = URI.create("https://foliohub.com/errors/invalid-parameters");
+    private static final URI URI_BUSINESS_RULE = URI.create("https://foliohub.com/errors/business-rule-violation");
+    private static final URI URI_NOT_FOUND = URI.create("https://foliohub.com/errors/resource-not-found");
+    private static final URI URI_MARKET_DATA = URI.create("https://foliohub.com/errors/market-data-unavailable");
+    private static final URI URI_INTERNAL_ERROR = URI.create("https://foliohub.com/errors/internal-server-error");
+
+    public record InvalidParameterDetail(String field, String message, Object rejectedValue) {}
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleValidationException(MethodArgumentNotValidException ex,
+                                                                   HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setType(URI_VALIDATION_ERROR);
+        problem.setTitle("Parâmetros de requisição inválidos");
+        problem.setDetail("Um ou mais campos submetidos não atendem aos critérios de validação.");
+        problem.setInstance(URI.create(request.getRequestURI()));
+
+        List<InvalidParameterDetail> invalidParams = ex.getBindingResult().getFieldErrors().stream()
+                .map(this::mapFieldError)
+                .toList();
+
+        problem.setProperty("invalidParameters", invalidParams);
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex,
+                                                                   HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setType(URI_VALIDATION_ERROR);
+        problem.setTitle("Restrição de parâmetro violada");
+        problem.setDetail(ex.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ProblemDetail> handleBusinessRuleException(BusinessRuleException ex,
+                                                                     HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        problem.setType(URI_BUSINESS_RULE);
+        problem.setTitle("Regra de negócio violada");
+        problem.setDetail(ex.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problem);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleResourceNotFoundException(ResourceNotFoundException ex,
+                                                                         HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setType(URI_NOT_FOUND);
+        problem.setTitle("Recurso não encontrado");
+        problem.setDetail(ex.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(MarketDataUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleMarketDataUnavailable(MarketDataUnavailableException ex,
+                                                                     HttpServletRequest request) {
+        log.warn("Serviço de cotações externas indisponível: {}", ex.getMessage());
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        problem.setType(URI_MARKET_DATA);
+        problem.setTitle("Serviço de mercado financeiro indisponível");
+        problem.setDetail(ex.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> handleMalformedJson(HttpMessageNotReadableException ex,
+                                                             HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setType(URI_VALIDATION_ERROR);
+        problem.setTitle("Corpo da requisição ilegível");
+        problem.setDetail("O payload JSON está malformatado ou contém tipos incompatíveis (ex: enum ou valor numérico inválido).");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleGenericException(Exception ex,
+                                                                HttpServletRequest request) {
+        log.error("Exceção não tratada capturada pelo RestControllerAdvice", ex);
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setType(URI_INTERNAL_ERROR);
+        problem.setTitle("Erro interno no servidor");
+        problem.setDetail("Ocorreu uma falha inesperada durante o processamento da solicitação.");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
+    }
+
+    private InvalidParameterDetail mapFieldError(FieldError fieldError) {
+        return new InvalidParameterDetail(
+                fieldError.getField(),
+                fieldError.getDefaultMessage(),
+                fieldError.getRejectedValue()
+        );
+    }
+}`,
+    },
+    {
+      id: 'dto-stock-create',
+      name: 'StockTransactionCreateDto.java',
+      category: 'DTO',
+      path: 'src/main/java/com/foliohub/domain/dto/StockTransactionCreateDto.java',
+      language: 'java',
+      description: 'Record de entrada com anotações Bean Validation (@Pattern B3, @NotNull, @DecimalMin, @PastOrPresent).',
+      code: `package com.foliohub.domain.dto;
+
+import com.foliohub.domain.model.enums.TransactionType;
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+public record StockTransactionCreateDto(
+        @NotNull(message = "O ID do investidor titular é obrigatório.")
+        UUID userId,
+
+        @NotBlank(message = "O ticker do ativo B3 é obrigatório.")
+        @Pattern(
+                regexp = "^[A-Z]{4}(3|4|11|34)$",
+                message = "Ticker B3 inválido. Padrão esperado: 4 letras seguidas de 3, 4, 11 ou 34 (ex: PETR4, VALE3, WEGE3, MXRF11, AAPL34)."
+        )
+        String ticker,
+
+        @NotNull(message = "O tipo da operação (COMPRA ou VENDA) é obrigatório.")
+        TransactionType type,
+
+        @NotNull(message = "A quantidade de cotas/ações é obrigatória.")
+        @DecimalMin(value = "0.0001", message = "A quantidade deve ser estritamente positiva.")
+        BigDecimal quantity,
+
+        @NotNull(message = "O preço unitário é obrigatório.")
+        @DecimalMin(value = "0.0001", message = "O preço unitário de execução deve ser estritamente positivo.")
+        BigDecimal unitPrice,
+
+        @NotNull(message = "A data de liquidação/operação da ordem é obrigatória.")
+        @PastOrPresent(message = "A data da operação não pode ser uma data futura.")
+        LocalDate operationDate,
+
+        @DecimalMin(value = "0.00", message = "A taxa de corretagem ou emolumentos não pode ser negativa.")
+        BigDecimal brokerageFees
+) {
+        public StockTransactionCreateDto {
+                if (ticker != null) {
+                        ticker = ticker.trim().toUpperCase();
+                }
+                if (brokerageFees == null) {
+                        brokerageFees = BigDecimal.ZERO;
+                }
+        }
+}`,
+    },
+    {
+      id: 'dto-portfolio-summary',
+      name: 'PortfolioSummaryDto.java',
+      category: 'DTO',
+      path: 'src/main/java/com/foliohub/domain/dto/PortfolioSummaryDto.java',
+      language: 'java',
+      description: 'DTO com patrimônio consolidado, retorno financeiro e divisão percentual rigorosa entre classes de ativos.',
+      code: `package com.foliohub.domain.dto;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+public record PortfolioSummaryDto(
+        UUID userId,
+        BigDecimal totalEquity,
+        BigDecimal totalInvested,
+        BigDecimal totalProfitLoss,
+        BigDecimal totalProfitLossPercentage,
+        BigDecimal stockEquity,
+        BigDecimal stockPercentage,
+        BigDecimal fixedIncomeEquity,
+        BigDecimal fixedIncomePercentage,
+        int activeStockPositionsCount,
+        int activeFixedIncomeCount,
+        Instant calculatedAt
+) {
+}`,
+    },
+    {
+      id: 'dto-fixed-calc',
+      name: 'FixedIncomeSimulationRequestDto.java',
+      category: 'DTO',
+      path: 'src/main/java/com/foliohub/domain/dto/FixedIncomeSimulationRequestDto.java',
+      language: 'java',
+      description: 'Parâmetros validados para simulação de aporte composto e comparativo frente ao CDI de mercado.',
+      code: `package com.foliohub.domain.dto;
+
+import com.foliohub.domain.model.enums.FixedIncomeType;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
+
+public record FixedIncomeSimulationRequestDto(
+        @NotNull(message = "O tipo do ativo de renda fixa é obrigatório (CDB, LCI, LCA, TESOURO).")
+        FixedIncomeType type,
+
+        @NotNull(message = "O valor do aporte inicial é obrigatório.")
+        @DecimalMin(value = "0.01", message = "O aporte inicial deve ser maior que zero.")
+        BigDecimal initialAmount,
+
+        @DecimalMin(value = "0.00", message = "O aporte mensal não pode ser negativo.")
+        BigDecimal monthlyContribution,
+
+        @NotNull(message = "A taxa anual contratada/esperada é obrigatória.")
+        @DecimalMin(value = "0.01", message = "A taxa anual deve ser maior que zero.")
+        BigDecimal annualRatePercentage,
+
+        @NotNull(message = "O prazo em meses é obrigatório.")
+        @Min(value = 1, message = "O prazo mínimo para simulação é de 1 mês.")
+        @Max(value = 360, message = "O prazo máximo suportado para simulação é de 360 meses.")
+        Integer months,
+
+        @DecimalMin(value = "0.00", message = "A taxa de referência CDI anual para comparação não pode ser negativa.")
+        BigDecimal benchmarkAnnualRatePercentage
+) {
+        public FixedIncomeSimulationRequestDto {
+                if (monthlyContribution == null) {
+                        monthlyContribution = BigDecimal.ZERO;
+                }
+                if (benchmarkAnnualRatePercentage == null) {
+                        benchmarkAnnualRatePercentage = new BigDecimal("10.75");
+                }
+        }
+}`,
+    },
     {
       id: 'entity-user',
       name: 'User.java',
