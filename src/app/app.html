@@ -1,1015 +1,1477 @@
-<div class="min-h-screen bg-[#070a0f] text-slate-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-300">
-  <!-- TOP BAR / MARKET TICKERS RIBBON -->
-  <header class="border-b border-slate-800/80 bg-[#0b0f17]/90 backdrop-blur-md sticky top-0 z-40">
+<div class="min-h-screen bg-[#F8F9FA] text-slate-800 flex flex-col font-sans">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. TOP BAR / CABEÇALHO INSTITUCIONAL COM DADOS DE MERCADO (STATUS INVEST)  -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Top brand line -->
-      <div class="flex items-center justify-between h-16">
+      
+      <!-- Linha Principal da Marca e Ações Globais -->
+      <div class="flex items-center justify-between h-14">
+        
+        <!-- Marca FolioHub -->
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-black text-xl">
-            <mat-icon class="text-2xl">account_balance</mat-icon>
+          <div class="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center text-white shadow-sm">
+            <mat-icon class="text-xl">trending_up</mat-icon>
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              <span class="text-lg font-bold tracking-tight text-slate-900">
                 FolioHub
               </span>
-              <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                 B3 Wealth
               </span>
             </div>
-            <p class="text-[11px] text-slate-400">Spring Boot 3 • Java 21 • Angular 21 • PostgreSQL</p>
           </div>
         </div>
 
-        <!-- Real-time B3 Market Tickers -->
-        <div class="hidden md:flex items-center space-x-6 text-xs text-slate-300">
-          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-slate-400 font-medium">B3:</span>
-            <span class="font-bold text-white">IBOV 128.450 pts</span>
-            <span class="text-emerald-400 font-semibold text-[11px]">+0.48%</span>
+        <!-- Indicadores Macroeconômicos B3 em Tempo Real -->
+        <div class="hidden lg:flex items-center space-x-5 text-xs text-slate-600">
+          <div class="flex items-center space-x-1.5 py-1 px-2.5 rounded bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 font-semibold uppercase text-[11px]">IBOV</span>
+            <span class="font-bold text-slate-900 tabular-nums">128.450 pts</span>
+            <span class="text-emerald-600 font-semibold text-[11px] tabular-nums">▲ +0,48%</span>
           </div>
-          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-            <span class="text-slate-400 font-medium">CDI:</span>
-            <span class="font-bold text-white">10.50% a.a.</span>
+
+          <div class="flex items-center space-x-1.5 py-1 px-2.5 rounded bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 font-semibold uppercase text-[11px]">CDI</span>
+            <span class="font-bold text-slate-900 tabular-nums">10,50% a.a.</span>
           </div>
-          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-            <span class="text-slate-400 font-medium">IPCA (12M):</span>
-            <span class="font-bold text-white">4.12%</span>
+
+          <div class="flex items-center space-x-1.5 py-1 px-2.5 rounded bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 font-semibold uppercase text-[11px]">SELIC</span>
+            <span class="font-bold text-slate-900 tabular-nums">10,75% a.a.</span>
           </div>
-          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-            <span class="text-slate-400 font-medium">DÓLAR:</span>
-            <span class="font-bold text-white">R$ 5.48</span>
+
+          <div class="flex items-center space-x-1.5 py-1 px-2.5 rounded bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 font-semibold uppercase text-[11px]">IPCA 12M</span>
+            <span class="font-bold text-slate-900 tabular-nums">4,12%</span>
+          </div>
+
+          <div class="flex items-center space-x-1.5 py-1 px-2.5 rounded bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 font-semibold uppercase text-[11px]">DÓLAR</span>
+            <span class="font-bold text-slate-900 tabular-nums">R$ 5,48</span>
+            <span class="text-rose-600 font-semibold text-[11px] tabular-nums">▼ -0,22%</span>
           </div>
         </div>
 
-        <!-- User profile preview -->
-        <div class="flex items-center space-x-3">
-          <div class="text-right hidden sm:block">
-            <p class="text-xs font-semibold text-slate-200">{{ folioService.currentUser().name }}</p>
-            <p class="text-[11px] text-slate-400">{{ folioService.currentUser().email }}</p>
-          </div>
-          <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 font-bold text-sm">
-            <mat-icon class="text-lg">person</mat-icon>
+        <!-- Perfil e Ações Rápidas -->
+        <div class="flex items-center space-x-2.5">
+          <button
+            type="button"
+            (click)="openAddStockModal()"
+            class="h-8 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm inline-flex items-center space-x-1.5 transition-colors"
+          >
+            <mat-icon class="text-base">add</mat-icon>
+            <span>Nova Ordem B3</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="openAddFixedIncomeModal()"
+            class="h-8 px-3 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold shadow-sm inline-flex items-center space-x-1.5 transition-colors"
+          >
+            <mat-icon class="text-base">account_balance_wallet</mat-icon>
+            <span>Novo Aporte RF</span>
+          </button>
+
+          <div class="h-6 w-px bg-slate-200 mx-1"></div>
+
+          <div class="flex items-center space-x-2 pl-1">
+            <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs">
+              CS
+            </div>
+            <div class="hidden sm:block text-left">
+              <div class="text-xs font-semibold text-slate-900 leading-none">{{ folioService.currentUser().name }}</div>
+              <div class="text-[10px] text-slate-500 leading-tight">Carteira Principal</div>
+            </div>
           </div>
         </div>
+
       </div>
+    </div>
+  </header>
 
-      <!-- Navigation tabs -->
-      <nav class="flex space-x-2 border-t border-slate-800/60 pt-2 pb-2">
+  <!-- ========================================================================= -->
+  <!-- 2. NAVEGAÇÃO SECUNDÁRIA STICKY (STATUS INVEST STYLE)                      -->
+  <!-- ========================================================================= -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-6 overflow-x-auto custom-scrollbar">
+        
         <button
           type="button"
-          (click)="selectTab('dashboard')"
-          [class]="activeTab() === 'dashboard'
-            ? 'px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm flex items-center space-x-2'
-            : 'px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors flex items-center space-x-2'"
+          (click)="selectTab('overview')"
+          [class]="activeTab() === 'overview'
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
         >
-          <mat-icon class="text-sm">dashboard</mat-icon>
-          <span>Carteira B3 & Renda Fixa</span>
+          <mat-icon class="text-base">dashboard</mat-icon>
+          <span>Visão Geral</span>
         </button>
 
         <button
           type="button"
-          (click)="selectTab('backend')"
-          [class]="activeTab() === 'backend'
-            ? 'px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm flex items-center space-x-2'
-            : 'px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors flex items-center space-x-2'"
+          (click)="selectTab('stocks')"
+          [class]="activeTab() === 'stocks'
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
         >
-          <mat-icon class="text-sm">code</mat-icon>
-          <span>Arquitetura Spring Boot 3 & Persistência</span>
-          <span class="px-1.5 py-0.2 text-[9px] bg-slate-800 text-slate-300 rounded font-mono">Java 21</span>
+          <mat-icon class="text-base">candlestick_chart</mat-icon>
+          <span>Ações & FIIs</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="selectTab('fixed_income')"
+          [class]="activeTab() === 'fixed_income'
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
+        >
+          <mat-icon class="text-base">savings</mat-icon>
+          <span>Renda Fixa & Títulos</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="selectTab('calculator')"
+          [class]="activeTab() === 'calculator'
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
+        >
+          <mat-icon class="text-base">calculate</mat-icon>
+          <span>Calculadora de IR & Projeção</span>
         </button>
 
         <button
           type="button"
           (click)="selectTab('precision')"
           [class]="activeTab() === 'precision'
-            ? 'px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm flex items-center space-x-2'
-            : 'px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors flex items-center space-x-2'"
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
         >
-          <mat-icon class="text-sm">calculate</mat-icon>
-          <span>Laboratório BigDecimal vs Double</span>
+          <mat-icon class="text-base">biotech</mat-icon>
+          <span>Laboratório BigDecimal (B3)</span>
         </button>
-      </nav>
+
+        <button
+          type="button"
+          (click)="selectTab('backend')"
+          [class]="activeTab() === 'backend'
+            ? 'py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap inline-flex items-center space-x-1.5'
+            : 'py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap inline-flex items-center space-x-1.5 transition-colors'"
+        >
+          <mat-icon class="text-base">terminal</mat-icon>
+          <span>Arquitetura Backend (Spring Boot 3)</span>
+        </button>
+
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <!-- MAIN BODY -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- ========================================================================= -->
+  <!-- 3. CORPO PRINCIPAL: DATA DENSITY & PRAGMATISMO ANALÍTICO                  -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    
+    <!-- GRID DE METRICAS PRINCIPAIS (KPI CARDS DE ALTA DENSIDADE) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-5">
+      
+      <!-- Patrimônio Total -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs">
+        <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Patrimônio Total</div>
+        <div class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">
+          R$ {{ folioService.totalNetWorth() | number:'1.2-2' }}
+        </div>
+        <div class="flex items-center space-x-1.5 mt-1 text-xs">
+          <span class="text-emerald-600 font-semibold tabular-nums inline-flex items-center">
+            ▲ +R$ {{ folioService.totalProfitLoss() | number:'1.2-2' }}
+          </span>
+          <span class="text-slate-400">·</span>
+          <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-semibold text-[11px] tabular-nums">
+            +{{ folioService.totalProfitLossPercent() | number:'1.2-2' }}%
+          </span>
+        </div>
+      </div>
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 1: STATUS INVEST DASHBOARD (CARTEIRA B3 & RENDA FIXA) -->
-    <!-- ========================================================================= -->
-    @if (activeTab() === 'dashboard') {
-      <div class="space-y-6">
+      <!-- Renda Variável (B3) -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs">
+        <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Ações & FIIs</div>
+        <div class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">
+          R$ {{ folioService.totalStocksCurrent() | number:'1.2-2' }}
+        </div>
+        <div class="flex items-center space-x-1.5 mt-1 text-xs text-slate-500">
+          <span class="font-medium text-slate-700 tabular-nums">{{ allocationBreakdown().stocksPercent }}%</span>
+          <span>da carteira</span>
+          <span class="text-slate-400">·</span>
+          <span class="text-slate-600 font-medium">{{ folioService.stockPositions().length }} ativos</span>
+        </div>
+      </div>
 
-        <!-- CONSOLIDATED SUMMARY CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Patrimônio Total -->
-          <div class="rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 p-5 border border-slate-800 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all"></div>
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-medium uppercase tracking-wider">Patrimônio Bruto Total</span>
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                <mat-icon class="text-base">account_balance_wallet</mat-icon>
+      <!-- Renda Fixa Custodiada -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs">
+        <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Renda Fixa</div>
+        <div class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">
+          R$ {{ folioService.totalFixedIncomeCurrent() | number:'1.2-2' }}
+        </div>
+        <div class="flex items-center space-x-1.5 mt-1 text-xs text-slate-500">
+          <span class="font-medium text-slate-700 tabular-nums">{{ allocationBreakdown().fixedIncomePercent }}%</span>
+          <span>da carteira</span>
+          <span class="text-slate-400">·</span>
+          <span class="text-slate-600 font-medium">{{ folioService.fixedIncomePositions().length }} títulos</span>
+        </div>
+      </div>
+
+      <!-- Proventos Estimados / DY Médio -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs">
+        <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Dividend Yield Médio</div>
+        <div class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">
+          8,42% a.a.
+        </div>
+        <div class="flex items-center space-x-1.5 mt-1 text-xs text-slate-500">
+          <span class="text-emerald-700 font-semibold tabular-nums">R$ 385,20</span>
+          <span>/ mês projetado</span>
+        </div>
+      </div>
+
+      <!-- Conformidade Contábil -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs col-span-2 md:col-span-4 lg:col-span-1">
+        <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Motor Financeiro</div>
+        <div class="text-base font-bold text-slate-900 mt-0.5">
+          BigDecimal (HALF_EVEN)
+        </div>
+        <div class="flex items-center space-x-1 mt-1 text-xs text-slate-500">
+          <mat-icon class="text-sm text-blue-600">verified</mat-icon>
+          <span class="text-slate-600 font-medium">B3 & Receita Federal</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- ABA 1: VISÃO GERAL (DASHBOARD CONSOLIDADO)                               -->
+    <!-- ======================================================================= -->
+    @if (activeTab() === 'overview') {
+      <div class="space-y-5">
+        
+        <!-- Barra de Distribuição de Classes Patrimoniais -->
+        <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Alocação Patrimonial por Classe
+            </div>
+            <div class="flex items-center space-x-4 text-xs font-semibold">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3 h-3 rounded-xs bg-blue-600"></span>
+                <span class="text-slate-700">Ações & FIIs ({{ allocationBreakdown().stocksPercent }}%)</span>
               </div>
-            </div>
-            <div class="text-2xl font-black text-white tracking-tight">
-              {{ folioService.totalNetWorth() | currency:'BRL':'symbol':'1.2-2' }}
-            </div>
-            <div class="mt-2 flex items-center space-x-2 text-xs">
-              <span class="text-slate-400">Total Aportado:</span>
-              <span class="font-semibold text-slate-300">
-                {{ folioService.totalCapitalInvested() | currency:'BRL':'symbol':'1.2-2' }}
-              </span>
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3 h-3 rounded-xs bg-emerald-600"></span>
+                <span class="text-slate-700">Renda Fixa ({{ allocationBreakdown().fixedIncomePercent }}%)</span>
+              </div>
             </div>
           </div>
 
-          <!-- Lucro / Rentabilidade Total -->
-          <div class="rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 p-5 border border-slate-800 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/15 transition-all"></div>
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-medium uppercase tracking-wider">Lucro / Rentabilidade</span>
-              <div class="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                <mat-icon class="text-base">trending_up</mat-icon>
-              </div>
-            </div>
-            <div class="flex items-baseline space-x-2">
-              <span [class]="folioService.totalProfitLoss() >= 0 ? 'text-2xl font-black text-emerald-400' : 'text-2xl font-black text-rose-400'">
-                {{ folioService.totalProfitLoss() | currency:'BRL':'symbol':'1.2-2' }}
-              </span>
-              <span [class]="folioService.totalProfitLossPercent() >= 0 ? 'text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded' : 'text-xs font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded'">
-                {{ folioService.totalProfitLossPercent() >= 0 ? '+' : '' }}{{ folioService.totalProfitLossPercent() }}%
-              </span>
-            </div>
-            <div class="mt-2 text-xs text-slate-400">
-              Rentabilidade acumulada da carteira
-            </div>
+          <!-- Barra Proporcional -->
+          <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+            <div class="bg-blue-600 h-full" [style.width.%]="allocationBreakdown().stocksPercent"></div>
+            <div class="bg-emerald-600 h-full" [style.width.%]="allocationBreakdown().fixedIncomePercent"></div>
           </div>
 
-          <!-- Renda Variável (Ações e FIIs B3) -->
-          <div class="rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 p-5 border border-slate-800 shadow-sm">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-medium uppercase tracking-wider">Ações & FIIs (B3)</span>
-              <div class="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <mat-icon class="text-base">show_chart</mat-icon>
-              </div>
+          <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-slate-100 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Renda Variável (B3):</span>
+              <span class="font-bold text-slate-900 tabular-nums">R$ {{ folioService.totalStocksCurrent() | number:'1.2-2' }}</span>
             </div>
-            <div class="text-2xl font-black text-white tracking-tight">
-              {{ folioService.totalStocksCurrent() | currency:'BRL':'symbol':'1.2-2' }}
-            </div>
-            <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
-              <span>{{ folioService.stockPositions().length }} ativos custodiados</span>
-              <span class="font-semibold text-indigo-400">{{ allocationBreakdown().stocksPercent }}% da carteira</span>
-            </div>
-          </div>
-
-          <!-- Renda Fixa -->
-          <div class="rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 p-5 border border-slate-800 shadow-sm">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-medium uppercase tracking-wider">Renda Fixa</span>
-              <div class="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400">
-                <mat-icon class="text-base">savings</mat-icon>
-              </div>
-            </div>
-            <div class="text-2xl font-black text-white tracking-tight">
-              {{ folioService.totalFixedIncomeCurrent() | currency:'BRL':'symbol':'1.2-2' }}
-            </div>
-            <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
-              <span>{{ folioService.fixedIncomePositions().length }} títulos ativos</span>
-              <span class="font-semibold text-teal-400">{{ allocationBreakdown().fixedIncomePercent }}% da carteira</span>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Renda Fixa (CDB / LCI / LCA / Tesouro):</span>
+              <span class="font-bold text-slate-900 tabular-nums">R$ {{ folioService.totalFixedIncomeCurrent() | number:'1.2-2' }}</span>
             </div>
           </div>
         </div>
 
-        <!-- ALLOCATION BAR & ACTIONS -->
-        <div class="rounded-2xl bg-slate-900/70 border border-slate-800 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex-1 space-y-2">
-            <div class="flex items-center justify-between text-xs font-medium text-slate-300">
-              <span>Alocação Patrimonial Estratégica</span>
-              <span class="text-slate-400">
-                Ações B3: <strong class="text-indigo-400">{{ allocationBreakdown().stocksPercent }}%</strong> |
-                Renda Fixa: <strong class="text-teal-400">{{ allocationBreakdown().fixedIncomePercent }}%</strong>
-              </span>
+        <!-- Tabela Compacta de Posições B3 com Preço Médio -->
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div class="flex items-center space-x-2">
+              <mat-icon class="text-blue-600 text-base">pie_chart</mat-icon>
+              <h2 class="text-sm font-bold text-slate-900">Custódia Consolidada de Ativos B3</h2>
             </div>
-            <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
-              <div
-                class="bg-indigo-500 transition-all duration-500"
-                [style.width.%]="allocationBreakdown().stocksPercent"
-                title="Ações B3"
-              ></div>
-              <div
-                class="bg-teal-500 transition-all duration-500"
-                [style.width.%]="allocationBreakdown().fixedIncomePercent"
-                title="Renda Fixa"
-              ></div>
+            <button
+              type="button"
+              (click)="selectTab('stocks')"
+              class="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center space-x-1"
+            >
+              <span>Ver detalhes e indicadores</span>
+              <mat-icon class="text-sm">arrow_forward</mat-icon>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-semibold h-9">
+                  <th class="px-3.5 py-2 text-left">Ticker / Empresa</th>
+                  <th class="px-3.5 py-2 text-right">Qtd</th>
+                  <th class="px-3.5 py-2 text-right">Preço Médio (PM)</th>
+                  <th class="px-3.5 py-2 text-right">Cotação Atual</th>
+                  <th class="px-3.5 py-2 text-right">Total Investido</th>
+                  <th class="px-3.5 py-2 text-right">Saldo Atual</th>
+                  <th class="px-3.5 py-2 text-right">Lucro / Prejuízo</th>
+                  <th class="px-3.5 py-2 text-right">Rentab. (%)</th>
+                  <th class="px-3.5 py-2 text-right">Peso</th>
+                  <th class="px-3.5 py-2 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (pos of folioService.stockPositions(); track pos.ticker) {
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-3.5 py-2.5">
+                      <div class="font-bold text-slate-900 text-xs flex items-center space-x-1.5">
+                        <span>{{ pos.ticker }}</span>
+                        <span class="text-[10px] font-normal text-slate-500 truncate max-w-[140px]">{{ pos.companyName }}</span>
+                      </div>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-medium text-slate-700 tabular-nums">
+                      {{ pos.quantity | number:'1.0-0' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-medium text-slate-700 tabular-nums">
+                      R$ {{ pos.averagePrice | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentPrice | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-600 tabular-nums">
+                      R$ {{ pos.totalInvested | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentTotal | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-semibold tabular-nums" [class.text-emerald-600]="pos.profitLoss >= 0" [class.text-rose-600]="pos.profitLoss < 0">
+                      {{ pos.profitLoss >= 0 ? '+' : '' }}R$ {{ pos.profitLoss | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right tabular-nums">
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[11px] font-semibold"
+                        [class.bg-emerald-50]="pos.profitLossPercent >= 0"
+                        [class.text-emerald-700]="pos.profitLossPercent >= 0"
+                        [class.bg-rose-50]="pos.profitLossPercent < 0"
+                        [class.text-rose-700]="pos.profitLossPercent < 0"
+                      >
+                        {{ pos.profitLossPercent >= 0 ? '+' : '' }}{{ pos.profitLossPercent | number:'1.2-2' }}%
+                      </span>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-500 tabular-nums">
+                      {{ pos.portfolioWeight | number:'1.1-1' }}%
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center">
+                      <div class="inline-flex items-center space-x-1">
+                        <button
+                          type="button"
+                          (click)="selectStockTicker(pos.ticker); selectTab('stocks')"
+                          title="Analisar Ticker"
+                          class="p-1 text-slate-500 hover:text-blue-600 rounded hover:bg-slate-100"
+                        >
+                          <mat-icon class="text-base">analytics</mat-icon>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openHistoryModal(pos.ticker)"
+                          title="Extrato de Transações"
+                          class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100"
+                        >
+                          <mat-icon class="text-base">receipt_long</mat-icon>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabela Compacta de Renda Fixa -->
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div class="flex items-center space-x-2">
+              <mat-icon class="text-emerald-600 text-base">account_balance</mat-icon>
+              <h2 class="text-sm font-bold text-slate-900">Títulos de Renda Fixa Ativos</h2>
+            </div>
+            <button
+              type="button"
+              (click)="selectTab('fixed_income')"
+              class="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center space-x-1"
+            >
+              <span>Ver tabela regressiva e detalhes</span>
+              <mat-icon class="text-sm">arrow_forward</mat-icon>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-semibold h-9">
+                  <th class="px-3.5 py-2 text-left">Título / Emissor</th>
+                  <th class="px-3.5 py-2 text-center">Tipo</th>
+                  <th class="px-3.5 py-2 text-center">Indexador</th>
+                  <th class="px-3.5 py-2 text-right">Taxa Contratada</th>
+                  <th class="px-3.5 py-2 text-center">Aplicação</th>
+                  <th class="px-3.5 py-2 text-center">Vencimento</th>
+                  <th class="px-3.5 py-2 text-right">Valor Aportado</th>
+                  <th class="px-3.5 py-2 text-right">Saldo Bruto Atual</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (pos of folioService.fixedIncomePositions(); track pos.id) {
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-3.5 py-2.5">
+                      <div class="font-bold text-slate-900 text-xs">{{ pos.assetName }}</div>
+                      <div class="text-[11px] text-slate-500">{{ pos.issuer }}</div>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ pos.type }}
+                      </span>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center font-medium text-slate-600">
+                      {{ pos.indexer }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-semibold text-slate-800 tabular-nums">
+                      @if (pos.indexer === 'CDI') {
+                        {{ pos.contractedRate }}% CDI
+                      } @else if (pos.indexer === 'IPCA') {
+                        IPCA + {{ pos.contractedRate }}%
+                      } @else {
+                        {{ pos.contractedRate }}% a.a.
+                      }
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center text-slate-500 tabular-nums">
+                      {{ pos.investmentDate }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center text-slate-500 tabular-nums">
+                      {{ pos.dueDate }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-600 tabular-nums">
+                      R$ {{ pos.investedAmount | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentAmount | number:'1.2-2' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ======================================================================= -->
+    <!-- ABA 2: AÇÕES & FIIS (STATUS INVEST STYLE: HERO, MÚLTIPLOS E TABELA)     -->
+    <!-- ======================================================================= -->
+    @if (activeTab() === 'stocks') {
+      <div class="space-y-5">
+        
+        <!-- HERO DO ATIVO (CONFORME REQUISITOS DE DESIGN SYSTEM STATUS INVEST) -->
+        <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+          
+          <!-- Breadcrumb discreto -->
+          <div class="text-[11px] text-slate-500 mb-2">
+            <span>B3</span>
+            <span class="mx-1.5">/</span>
+            <span>Ações</span>
+            <span class="mx-1.5">/</span>
+            <span class="text-slate-700 font-medium">{{ activeStockDetail().sector }}</span>
+            <span class="mx-1.5">/</span>
+            <span class="font-bold text-slate-900">{{ activeStockDetail().ticker }}</span>
+          </div>
+
+          <!-- Header horizontal compacto -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            
+            <div class="flex items-center space-x-3.5">
+              <!-- Logo / Avatar do Ativo -->
+              <div class="w-11 h-11 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                {{ activeStockDetail().ticker.substring(0, 4) }}
+              </div>
+
+              <div>
+                <div class="flex items-center space-x-2.5">
+                  <h1 class="text-2xl font-bold text-slate-900 leading-none">
+                    {{ activeStockDetail().ticker }}
+                  </h1>
+                  <span class="text-xs text-slate-500 font-normal">
+                    {{ activeStockDetail().companyName }}
+                  </span>
+                </div>
+                
+                <div class="flex items-center space-x-3 mt-1.5">
+                  <!-- Cotação Atual -->
+                  <div class="text-xl font-bold text-slate-900 tabular-nums leading-none">
+                    R$ {{ activeStockDetail().currentPrice | number:'1.2-2' }}
+                  </div>
+
+                  <!-- Badge de Variação Diária -->
+                  <span
+                    class="px-2 py-0.5 rounded text-xs font-semibold tabular-nums inline-flex items-center"
+                    [class.bg-emerald-50]="activeStockDetail().dailyChange >= 0"
+                    [class.text-emerald-700]="activeStockDetail().dailyChange >= 0"
+                    [class.bg-rose-50]="activeStockDetail().dailyChange < 0"
+                    [class.text-rose-700]="activeStockDetail().dailyChange < 0"
+                  >
+                    {{ activeStockDetail().dailyChange >= 0 ? '▲ +' : '▼ ' }}{{ activeStockDetail().dailyChange | number:'1.2-2' }}%
+                  </span>
+
+                  <!-- Mín / Máx do dia -->
+                  <div class="hidden sm:flex items-center space-x-2 text-[11px] text-slate-500 tabular-nums">
+                    <span>Mín: R$ {{ activeStockDetail().dayLow | number:'1.2-2' }}</span>
+                    <span>·</span>
+                    <span>Máx: R$ {{ activeStockDetail().dayHigh | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controles Temporais (Segmented Control / Pills) & Ações -->
+            <div class="flex flex-wrap items-center gap-2">
+              
+              <!-- Segmented control de tempo -->
+              <div class="inline-flex rounded-md border border-slate-200 bg-slate-50 p-0.5">
+                @for (tf of timeFilters; track tf) {
+                  <button
+                    type="button"
+                    (click)="selectTimeRange(tf)"
+                    [class]="selectedTimeRange() === tf
+                      ? 'h-7 px-2.5 text-xs font-bold rounded bg-white text-blue-600 shadow-xs'
+                      : 'h-7 px-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900'"
+                  >
+                    {{ tf }}
+                  </button>
+                }
+              </div>
+
+              <!-- Ações Rápidas -->
+              <button
+                type="button"
+                (click)="openAddStockModal(activeStockDetail().ticker)"
+                class="h-7 px-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center space-x-1"
+              >
+                <mat-icon class="text-sm">add</mat-icon>
+                <span>Operar</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="openHistoryModal(activeStockDetail().ticker)"
+                class="h-7 px-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center space-x-1"
+              >
+                <mat-icon class="text-sm">receipt_long</mat-icon>
+                <span>Extrato</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- GRID RESPONSIVO DE MÚLTIPLOS FUNDAMENTALISTAS (STATUS INVEST) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-4">
+            
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>P/L</span>
+                <span title="Preço / Lucro" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-slate-900 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().pl | number:'1.2-2' }}
+              </div>
+            </div>
+
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>P/VP</span>
+                <span title="Preço / Valor Patrimonial" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-slate-900 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().pvp | number:'1.2-2' }}
+              </div>
+            </div>
+
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>DY (12M)</span>
+                <span title="Dividend Yield últimos 12 meses" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-emerald-600 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().dy | number:'1.2-2' }}%
+              </div>
+            </div>
+
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>ROE</span>
+                <span title="Retorno sobre o Patrimônio Líquido" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-slate-900 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().roe | number:'1.2-2' }}%
+              </div>
+            </div>
+
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>Margem Líq.</span>
+                <span title="Margem Líquida" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-slate-900 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().netMargin | number:'1.2-2' }}%
+              </div>
+            </div>
+
+            <div class="bg-slate-50/70 border border-slate-200 rounded-md p-2.5">
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span>Dív. Líq./EBITDA</span>
+                <span title="Alavancagem Financeira" class="text-slate-400 cursor-help">?</span>
+              </div>
+              <div class="text-base font-bold text-slate-900 tabular-nums mt-1 text-right">
+                {{ activeStockDetail().netDebtEbitda | number:'1.2-2' }}x
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Metadados de Liquidez e Capitalização -->
+          <div class="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
+            <div>
+              <span>Volume Médio 24h: </span>
+              <span class="font-semibold text-slate-800 tabular-nums">{{ activeStockDetail().volume24h }}</span>
+            </div>
+            <div>
+              <span>Valor de Mercado: </span>
+              <span class="font-semibold text-slate-800 tabular-nums">{{ activeStockDetail().marketCap }}</span>
+            </div>
+            <div class="text-slate-400 text-[10px]">
+              Fonte: Brapi API com Cache Caffeine (TTL 15m)
             </div>
           </div>
 
-          <div class="flex items-center space-x-3">
-            <button
-              type="button"
-              (click)="openAddStockModal()"
-              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center space-x-2 shadow-lg shadow-emerald-600/20"
-            >
-              <mat-icon class="text-base">add_circle</mat-icon>
-              <span>Registrar Ordem B3</span>
-            </button>
+        </div>
+
+        <!-- TABELA COMPLETA DE CUSTÓDIA B3 (COM ORDENAÇÃO E ALINHAMENTOS ESTRITOS) -->
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+          
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Posições em Custódia (Preço Médio Ponderado)</h2>
+              <p class="text-xs text-slate-500">Cálculo de preço médio segundo instruções normativas da Receita Federal na B3</p>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-500">Clique na linha para detalhar</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-semibold h-9">
+                  <th (click)="toggleStockSort('ticker')" class="px-3.5 py-2 text-left cursor-pointer hover:text-blue-600">
+                    Ativo
+                  </th>
+                  <th (click)="toggleStockSort('quantity')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Qtd
+                  </th>
+                  <th (click)="toggleStockSort('averagePrice')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Preço Médio (PM)
+                  </th>
+                  <th (click)="toggleStockSort('currentPrice')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Cotação Atual
+                  </th>
+                  <th (click)="toggleStockSort('totalInvested')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Total Investido
+                  </th>
+                  <th (click)="toggleStockSort('currentTotal')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Saldo Atual
+                  </th>
+                  <th (click)="toggleStockSort('profitLoss')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Resultado (R$)
+                  </th>
+                  <th (click)="toggleStockSort('profitLossPercent')" class="px-3.5 py-2 text-right cursor-pointer hover:text-blue-600">
+                    Rentab. (%)
+                  </th>
+                  <th class="px-3.5 py-2 text-right">Peso</th>
+                  <th class="px-3.5 py-2 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (pos of sortedStockPositions(); track pos.ticker) {
+                  <tr
+                    (click)="selectStockTicker(pos.ticker)"
+                    class="hover:bg-slate-50/80 cursor-pointer transition-colors"
+                    [class.bg-blue-50/30]="selectedStockTicker() === pos.ticker"
+                  >
+                    <td class="px-3.5 py-2.5">
+                      <div class="font-bold text-slate-900 text-xs flex items-center space-x-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full" [class.bg-blue-600]="selectedStockTicker() === pos.ticker" [class.bg-transparent]="selectedStockTicker() !== pos.ticker"></span>
+                        <span class="hover:text-blue-600">{{ pos.ticker }}</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500 pl-3 truncate max-w-[170px]">{{ pos.companyName }}</div>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-medium text-slate-800 tabular-nums">
+                      {{ pos.quantity | number:'1.0-0' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-medium text-slate-800 tabular-nums">
+                      R$ {{ pos.averagePrice | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentPrice | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-600 tabular-nums">
+                      R$ {{ pos.totalInvested | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentTotal | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-semibold tabular-nums" [class.text-emerald-600]="pos.profitLoss >= 0" [class.text-rose-600]="pos.profitLoss < 0">
+                      {{ pos.profitLoss >= 0 ? '+' : '' }}R$ {{ pos.profitLoss | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right tabular-nums">
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[11px] font-semibold"
+                        [class.bg-emerald-50]="pos.profitLossPercent >= 0"
+                        [class.text-emerald-700]="pos.profitLossPercent >= 0"
+                        [class.bg-rose-50]="pos.profitLossPercent < 0"
+                        [class.text-rose-700]="pos.profitLossPercent < 0"
+                      >
+                        {{ pos.profitLossPercent >= 0 ? '+' : '' }}{{ pos.profitLossPercent | number:'1.2-2' }}%
+                      </span>
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-500 tabular-nums font-medium">
+                      {{ pos.portfolioWeight | number:'1.1-1' }}%
+                    </td>
+                    <td class="px-3.5 py-2.5 text-center" (click)="$event.stopPropagation()">
+                      <div class="inline-flex items-center space-x-1">
+                        <button
+                          type="button"
+                          (click)="openAddStockModal(pos.ticker)"
+                          title="Lançar Ordem"
+                          class="p-1 text-slate-500 hover:text-blue-600 rounded hover:bg-slate-100"
+                        >
+                          <mat-icon class="text-base">add</mat-icon>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openHistoryModal(pos.ticker)"
+                          title="Ver Extrato"
+                          class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100"
+                        >
+                          <mat-icon class="text-base">receipt_long</mat-icon>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ======================================================================= -->
+    <!-- ABA 3: RENDA FIXA (CDB, LCI, LCA, TESOURO & TABELA REGRESSIVA DE IR)    -->
+    <!-- ======================================================================= -->
+    @if (activeTab() === 'fixed_income') {
+      <div class="space-y-5">
+        
+        <!-- BANNER EXPLICATIVO DA TABELA REGRESSIVA DE IR (LEGISLAÇÃO BRASILEIRA) -->
+        <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Tabela Regressiva de Imposto de Renda (Renda Fixa)</h2>
+              <p class="text-xs text-slate-500">Alíquotas incidentes exclusivamente sobre o rendimento bruto auferido no resgate</p>
+            </div>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+              LCI & LCA Isentas de IR (Pessoas Físicas)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+            <div class="p-2.5 rounded border border-slate-200 bg-slate-50">
+              <div class="text-slate-500 text-[11px] font-semibold">Até 180 dias corridos</div>
+              <div class="text-lg font-bold text-slate-900 tabular-nums mt-0.5">22,5%</div>
+              <div class="text-[10px] text-slate-400">Curto prazo</div>
+            </div>
+
+            <div class="p-2.5 rounded border border-slate-200 bg-slate-50">
+              <div class="text-slate-500 text-[11px] font-semibold">181 a 360 dias corridos</div>
+              <div class="text-lg font-bold text-slate-900 tabular-nums mt-0.5">20,0%</div>
+              <div class="text-[10px] text-slate-400">Até 1 ano</div>
+            </div>
+
+            <div class="p-2.5 rounded border border-slate-200 bg-slate-50">
+              <div class="text-slate-500 text-[11px] font-semibold">361 a 720 dias corridos</div>
+              <div class="text-lg font-bold text-slate-900 tabular-nums mt-0.5">17,5%</div>
+              <div class="text-[10px] text-slate-400">Até 2 anos</div>
+            </div>
+
+            <div class="p-2.5 rounded border border-slate-200 bg-slate-50">
+              <div class="text-slate-500 text-[11px] font-semibold">Acima de 720 dias corridos</div>
+              <div class="text-lg font-bold text-emerald-700 tabular-nums mt-0.5">15,0%</div>
+              <div class="text-[10px] text-emerald-600 font-medium">Alíquota mínima</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABELA DE TÍTULOS DE RENDA FIXA CUSTODIADOS -->
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+          
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Posições de Renda Fixa em Custódia</h2>
+              <p class="text-xs text-slate-500">Cálculo de alíquota estimada de IR com base na data do aporte</p>
+            </div>
+            
             <button
               type="button"
               (click)="openAddFixedIncomeModal()"
-              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-colors flex items-center space-x-2"
+              class="h-7 px-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center space-x-1 shadow-xs"
             >
-              <mat-icon class="text-base">add</mat-icon>
-              <span>Aporte Renda Fixa</span>
+              <mat-icon class="text-sm">add</mat-icon>
+              <span>Cadastrar Título</span>
             </button>
           </div>
-        </div>
-
-        <!-- ========================================================= -->
-        <!-- TABELA DE AÇÕES E FIIs B3 (STATUS INVEST STYLE) -->
-        <!-- ========================================================= -->
-        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden shadow-sm">
-          <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <mat-icon class="text-base">candlestick_chart</mat-icon>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-white">Posições em Ações & FIIs na B3</h3>
-                <p class="text-xs text-slate-400">Preço Médio (PM) calculado via RoundingMode.HALF_EVEN estrito</p>
-              </div>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-              {{ folioService.stockPositions().length }} ativos
-            </span>
-          </div>
 
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-950/60 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-800">
-                <tr>
-                  <th class="py-3.5 px-6">Ticker / Ativo</th>
-                  <th class="py-3.5 px-4 text-right">Qtd</th>
-                  <th class="py-3.5 px-4 text-right">Preço Médio</th>
-                  <th class="py-3.5 px-4 text-right">Cotação Atual</th>
-                  <th class="py-3.5 px-4 text-right">Valor Aportado</th>
-                  <th class="py-3.5 px-4 text-right">Valor Atual</th>
-                  <th class="py-3.5 px-4 text-right">Lucro / Prejuízo</th>
-                  <th class="py-3.5 px-4 text-center">Peso</th>
-                  <th class="py-3.5 px-6 text-center">Ações</th>
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-semibold h-9">
+                  <th class="px-3.5 py-2 text-left">Título / Emissor</th>
+                  <th class="px-3.5 py-2 text-center">Tipo</th>
+                  <th class="px-3.5 py-2 text-center">Indexador</th>
+                  <th class="px-3.5 py-2 text-right">Taxa Contratada</th>
+                  <th class="px-3.5 py-2 text-center">Data Aporte</th>
+                  <th class="px-3.5 py-2 text-center">Vencimento</th>
+                  <th class="px-3.5 py-2 text-right">Dias Decorridos</th>
+                  <th class="px-3.5 py-2 text-center">IR Estimado</th>
+                  <th class="px-3.5 py-2 text-right">Valor Aportado</th>
+                  <th class="px-3.5 py-2 text-right">Saldo Bruto</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-800/60 text-slate-300">
-                @for (pos of folioService.stockPositions(); track pos.ticker) {
-                  <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="py-4 px-6">
-                      <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center font-bold text-xs text-emerald-400">
-                          {{ pos.ticker.substring(0, 4) }}
-                        </div>
-                        <div>
-                          <div class="font-bold text-white flex items-center space-x-1.5">
-                            <span>{{ pos.ticker }}</span>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">B3</span>
-                          </div>
-                          <div class="text-xs text-slate-400">{{ pos.companyName }}</div>
-                        </div>
-                      </div>
+              <tbody class="divide-y divide-slate-100">
+                @for (pos of folioService.fixedIncomePositions(); track pos.id) {
+                  @let days = calculateElapsedDays(pos.investmentDate);
+                  @let irRate = calculateFixedIncomeTaxRate(pos.type, days);
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-3.5 py-2.5">
+                      <div class="font-bold text-slate-900 text-xs">{{ pos.assetName }}</div>
+                      <div class="text-[11px] text-slate-500">{{ pos.issuer }}</div>
                     </td>
-                    <td class="py-4 px-4 text-right font-semibold text-white">
-                      {{ pos.quantity | number:'1.0-4' }}
-                    </td>
-                    <td class="py-4 px-4 text-right font-mono text-slate-300">
-                      {{ pos.averagePrice | currency:'BRL':'symbol':'1.2-4' }}
-                    </td>
-                    <td class="py-4 px-4 text-right font-mono text-white font-medium">
-                      {{ pos.currentPrice | currency:'BRL':'symbol':'1.2-2' }}
-                    </td>
-                    <td class="py-4 px-4 text-right font-mono text-slate-400">
-                      {{ pos.totalInvested | currency:'BRL':'symbol':'1.2-2' }}
-                    </td>
-                    <td class="py-4 px-4 text-right font-mono font-bold text-white">
-                      {{ pos.currentTotal | currency:'BRL':'symbol':'1.2-2' }}
-                    </td>
-                    <td class="py-4 px-4 text-right">
-                      <div class="flex flex-col items-end">
-                        <span [class]="pos.profitLoss >= 0 ? 'text-emerald-400 font-bold font-mono text-xs' : 'text-rose-400 font-bold font-mono text-xs'">
-                          {{ pos.profitLoss | currency:'BRL':'symbol':'1.2-2' }}
-                        </span>
-                        <span [class]="pos.profitLossPercent >= 0 ? 'text-[11px] text-emerald-400' : 'text-[11px] text-rose-400'">
-                          {{ pos.profitLossPercent >= 0 ? '+' : '' }}{{ pos.profitLossPercent }}%
-                        </span>
-                      </div>
-                    </td>
-                    <td class="py-4 px-4 text-center">
-                      <div class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                        {{ pos.portfolioWeight }}%
-                      </div>
-                    </td>
-                    <td class="py-4 px-6 text-center">
-                      <button
-                        type="button"
-                        (click)="openHistoryModal(pos.ticker)"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                        title="Ver histórico de ordens na B3"
-                      >
-                        <mat-icon class="text-base">history</mat-icon>
-                      </button>
-                    </td>
-                  </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="9" class="py-8 text-center text-slate-500">
-                      Nenhuma transação de ação registrada na B3.
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ========================================================= -->
-        <!-- TABELA DE RENDA FIXA (STATUS INVEST STYLE) -->
-        <!-- ========================================================= -->
-        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden shadow-sm">
-          <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400">
-                <mat-icon class="text-base">account_balance</mat-icon>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-white">Posições em Renda Fixa</h3>
-                <p class="text-xs text-slate-400">Títulos com taxas indexadas (CDI, IPCA, Prefixado) e vencimentos</p>
-              </div>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-              {{ folioService.fixedIncomePositions().length }} títulos
-            </span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-950/60 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-800">
-                <tr>
-                  <th class="py-3.5 px-6">Título / Emissor</th>
-                  <th class="py-3.5 px-4 text-center">Tipo</th>
-                  <th class="py-3.5 px-4 text-center">Indexador</th>
-                  <th class="py-3.5 px-4 text-right">Taxa Contratada</th>
-                  <th class="py-3.5 px-4 text-right">Aporte Inicial</th>
-                  <th class="py-3.5 px-4 text-right">Saldo Atual Estimado</th>
-                  <th class="py-3.5 px-4 text-center">Data Aporte</th>
-                  <th class="py-3.5 px-6 text-center">Vencimento</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/60 text-slate-300">
-                @for (fip of folioService.fixedIncomePositions(); track fip.id) {
-                  <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="py-4 px-6">
-                      <div class="font-bold text-white">{{ fip.assetName }}</div>
-                      <div class="text-xs text-slate-400">{{ fip.issuer }}</div>
-                    </td>
-                    <td class="py-4 px-4 text-center">
-                      <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                        {{ fip.type }}
+                    <td class="px-3.5 py-2.5 text-center">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ pos.type }}
                       </span>
                     </td>
-                    <td class="py-4 px-4 text-center">
-                      <span class="px-2 py-0.5 text-xs font-semibold rounded bg-slate-800 text-slate-300 border border-slate-700">
-                        {{ fip.indexer }}
-                      </span>
+                    <td class="px-3.5 py-2.5 text-center font-medium text-slate-700">
+                      {{ pos.indexer }}
                     </td>
-                    <td class="py-4 px-4 text-right font-mono font-semibold text-emerald-400">
-                      @if (fip.indexer === 'CDI') {
-                        {{ fip.contractedRate }}% CDI
-                      } @else if (fip.indexer === 'IPCA') {
-                        IPCA + {{ fip.contractedRate }}%
+                    <td class="px-3.5 py-2.5 text-right font-semibold text-slate-900 tabular-nums">
+                      @if (pos.indexer === 'CDI') {
+                        {{ pos.contractedRate }}% CDI
+                      } @else if (pos.indexer === 'IPCA') {
+                        IPCA + {{ pos.contractedRate }}%
                       } @else {
-                        {{ fip.contractedRate }}% a.a.
+                        {{ pos.contractedRate }}% a.a.
                       }
                     </td>
-                    <td class="py-4 px-4 text-right font-mono text-slate-400">
-                      {{ fip.investedAmount | currency:'BRL':'symbol':'1.2-2' }}
+                    <td class="px-3.5 py-2.5 text-center text-slate-500 tabular-nums">
+                      {{ pos.investmentDate }}
                     </td>
-                    <td class="py-4 px-4 text-right font-mono font-bold text-white">
-                      {{ fip.currentAmount | currency:'BRL':'symbol':'1.2-2' }}
+                    <td class="px-3.5 py-2.5 text-center text-slate-500 tabular-nums">
+                      {{ pos.dueDate }}
                     </td>
-                    <td class="py-4 px-4 text-center text-xs text-slate-400 font-mono">
-                      {{ fip.investmentDate }}
+                    <td class="px-3.5 py-2.5 text-right font-medium text-slate-600 tabular-nums">
+                      {{ days }} dias
                     </td>
-                    <td class="py-4 px-6 text-center">
-                      <div class="inline-flex items-center space-x-1 text-xs font-mono font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-                        <mat-icon class="text-xs">event</mat-icon>
-                        <span>{{ fip.dueDate }}</span>
-                      </div>
+                    <td class="px-3.5 py-2.5 text-center">
+                      @if (pos.type === 'LCI' || pos.type === 'LCA') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          ISENTO
+                        </span>
+                      } @else {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 tabular-nums">
+                          {{ irRate }}%
+                        </span>
+                      }
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right text-slate-600 tabular-nums">
+                      R$ {{ pos.investedAmount | number:'1.2-2' }}
+                    </td>
+                    <td class="px-3.5 py-2.5 text-right font-bold text-slate-900 tabular-nums">
+                      R$ {{ pos.currentAmount | number:'1.2-2' }}
                     </td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
+
         </div>
+
       </div>
     }
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 2: ARQUITETURA SPRING BOOT 3 & PERSISTÊNCIA -->
-    <!-- ========================================================================= -->
-    @if (activeTab() === 'backend') {
-      <div class="space-y-6">
+    <!-- ======================================================================= -->
+    <!-- ABA 4: CALCULADORA DE RENDA FIXA & PROJEÇÃO DE RENDIMENTO               -->
+    <!-- ======================================================================= -->
+    @if (activeTab() === 'calculator') {
+      <div class="space-y-5">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          <!-- Formulário de Parâmetros do Simulador -->
+          <div class="lg:col-span-5 bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+            <div class="flex items-center space-x-2 pb-3 mb-3 border-b border-slate-100">
+              <mat-icon class="text-blue-600 text-base">tune</mat-icon>
+              <h2 class="text-sm font-bold text-slate-900">Parâmetros de Simulação de Renda Fixa</h2>
+            </div>
 
-        <!-- TECH LEAD ARCHITECTURE OVERVIEW BANNER -->
-        <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/30 p-6 shadow-sm">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <form [formGroup]="calculatorForm" class="space-y-3">
+              <div>
+                <label for="calc-initialAmount" class="block text-xs font-semibold text-slate-700 mb-1">Aporte Inicial (R$)</label>
+                <input
+                  id="calc-initialAmount"
+                  type="number"
+                  formControlName="initialAmount"
+                  class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden tabular-nums font-medium"
+                />
+              </div>
+
+              <div>
+                <label for="calc-monthlyDeposit" class="block text-xs font-semibold text-slate-700 mb-1">Aporte Mensal Recorrente (R$)</label>
+                <input
+                  id="calc-monthlyDeposit"
+                  type="number"
+                  formControlName="monthlyDeposit"
+                  class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden tabular-nums font-medium"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="calc-periodMonths" class="block text-xs font-semibold text-slate-700 mb-1">Prazo (Meses)</label>
+                  <input
+                    id="calc-periodMonths"
+                    type="number"
+                    formControlName="periodMonths"
+                    class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden tabular-nums font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label for="calc-ratePercent" class="block text-xs font-semibold text-slate-700 mb-1">Taxa Contratada (%)</label>
+                  <input
+                    id="calc-ratePercent"
+                    type="number"
+                    step="0.5"
+                    formControlName="ratePercent"
+                    class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden tabular-nums font-medium"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="calc-assetType" class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Título</label>
+                  <select
+                    id="calc-assetType"
+                    formControlName="assetType"
+                    class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium bg-white"
+                  >
+                    <option value="CDB">CDB (Tributado)</option>
+                    <option value="TESOURO">Tesouro Direto (Tributado)</option>
+                    <option value="LCI">LCI (Isento de IR)</option>
+                    <option value="LCA">LCA (Isento de IR)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="calc-indexer" class="block text-xs font-semibold text-slate-700 mb-1">Indexador</label>
+                  <select
+                    id="calc-indexer"
+                    formControlName="indexer"
+                    class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium bg-white"
+                  >
+                    <option value="CDI">CDI (% do CDI)</option>
+                    <option value="PREFIXADO">Pré-Fixado (% a.a.)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="p-2.5 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500 leading-relaxed">
+                Benchmark padrão: CDI em 10,50% a.a. e tabela regressiva aplicada sobre os dias corridos do período de projeção.
+              </div>
+            </form>
+          </div>
+
+          <!-- Card de Resultados do Simulador -->
+          <div class="lg:col-span-7 bg-white border border-slate-200 rounded-lg p-4 shadow-xs flex flex-col justify-between">
             <div>
-              <div class="flex items-center space-x-2">
-                <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
-                  ARQUITETURA EM CAMADAS
-                </span>
-                <span class="text-xs text-slate-400">Java 21 • Spring Boot 3.3 • Spring Data JPA • PostgreSQL</span>
+              <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <mat-icon class="text-emerald-600 text-base">assessment</mat-icon>
+                  <h2 class="text-sm font-bold text-slate-900">Resultado Consolidado da Simulação</h2>
+                </div>
+                
+                @if (simulationResult().isExempt) {
+                  <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    ISENTO DE IR
+                  </span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
+                    Alíquota IR: {{ simulationResult().irTaxRatePercent }}%
+                  </span>
+                }
               </div>
-              <h2 class="text-xl font-bold text-white mt-2">
-                Camada de Persistência & Modelagem Relacional do FolioHub
-              </h2>
-              <p class="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
-                Desenvolvido com rigor financeiro inegociável: uso estrito de <code class="text-emerald-400 font-bold bg-slate-950 px-1 py-0.5 rounded">BigDecimal</code> com escala explícita e <code class="text-emerald-400 font-bold bg-slate-950 px-1 py-0.5 rounded">RoundingMode.HALF_EVEN</code> (Banker's Rounding), migration versionada via Flyway com índices compostos, e Repositories otimizados com consultas JPQL customizadas.
-              </p>
+
+              <!-- Destaque do Valor Líquido Final -->
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5 mb-4">
+                <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Valor Líquido Final a Resgatar</div>
+                <div class="text-2xl font-bold text-slate-900 tabular-nums mt-0.5">
+                  R$ {{ simulationResult().netBalance | number:'1.2-2' }}
+                </div>
+                <div class="text-xs text-slate-500 mt-1 flex items-center space-x-2">
+                  <span class="text-emerald-600 font-semibold tabular-nums">
+                    Lucro Líquido: +R$ {{ simulationResult().netProfit | number:'1.2-2' }}
+                  </span>
+                  <span>·</span>
+                  <span class="text-slate-600 font-medium tabular-nums">
+                    Rentabilidade Líquida: +{{ simulationResult().netProfitPercent | number:'1.2-2' }}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Linhas de Demonstração Contábil -->
+              <div class="space-y-2 text-xs divide-y divide-slate-100">
+                <div class="flex justify-between py-1.5">
+                  <span class="text-slate-500">Total Desembolsado (Aportes):</span>
+                  <span class="font-semibold text-slate-900 tabular-nums">R$ {{ simulationResult().totalInvested | number:'1.2-2' }}</span>
+                </div>
+
+                <div class="flex justify-between py-1.5">
+                  <span class="text-slate-500">Rendimento Bruto Acumulado:</span>
+                  <span class="font-semibold text-slate-900 tabular-nums">+R$ {{ simulationResult().grossEarnings | number:'1.2-2' }}</span>
+                </div>
+
+                <div class="flex justify-between py-1.5">
+                  <span class="text-slate-500">Saldo Bruto Total:</span>
+                  <span class="font-semibold text-slate-900 tabular-nums">R$ {{ simulationResult().grossBalance | number:'1.2-2' }}</span>
+                </div>
+
+                <div class="flex justify-between py-1.5">
+                  <span class="text-slate-500">Imposto de Renda Retido (Tabela Regressiva):</span>
+                  <span class="font-semibold tabular-nums" [class.text-rose-600]="simulationResult().taxDeduction > 0" [class.text-slate-500]="simulationResult().taxDeduction === 0">
+                    {{ simulationResult().taxDeduction > 0 ? '-' : '' }}R$ {{ simulationResult().taxDeduction | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center space-x-3 shrink-0">
-              <button
-                type="button"
-                (click)="copyCurrentCode()"
-                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center space-x-2 shadow-md shadow-emerald-600/20"
-              >
-                <mat-icon class="text-base">{{ copiedStatus() ? 'done' : 'content_copy' }}</mat-icon>
-                <span>{{ copiedStatus() ? 'Código Copiado!' : 'Copiar Arquivo Atual' }}</span>
-              </button>
+
+            <!-- Comparativo vs Poupança -->
+            <div class="mt-4 pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-slate-500">Mesmo valor na Poupança renderia: </span>
+                  <span class="font-bold text-slate-800 tabular-nums">R$ {{ simulationResult().balancePoupanca | number:'1.2-2' }}</span>
+                </div>
+                <div class="font-semibold text-emerald-600 tabular-nums">
+                  +R$ {{ simulationResult().diffPoupanca | number:'1.2-2' }} a mais
+                </div>
+              </div>
             </div>
+
           </div>
+
         </div>
 
-        <!-- ENTITY-RELATIONSHIP SCHEMA (ERD) VISUAL -->
-        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 shadow-sm">
-          <div class="flex items-center space-x-3 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-              <mat-icon class="text-base">schema</mat-icon>
-            </div>
-            <div>
-              <h3 class="text-base font-bold text-white">Modelo Físico & Relacionamentos (PostgreSQL DDL)</h3>
-              <p class="text-xs text-slate-400">Integridade referencial com ON DELETE CASCADE e precisão monetária NUMERIC(19,4) / NUMERIC(19,2)</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Table 1: tb_users -->
-            <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-4">
-              <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-                <span class="font-bold text-white text-xs font-mono flex items-center space-x-1.5">
-                  <mat-icon class="text-emerald-400 text-sm">table_chart</mat-icon>
-                  <span>tb_users</span>
-                </span>
-                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Tabela Principal</span>
-              </div>
-              <ul class="space-y-1.5 text-xs font-mono">
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>PK id</span>
-                  <span class="text-slate-500 text-[11px]">UUID</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-300">
-                  <span>name</span>
-                  <span class="text-slate-500 text-[11px]">VARCHAR(150)</span>
-                </li>
-                <li class="flex items-center justify-between text-cyan-400">
-                  <span>UK email</span>
-                  <span class="text-slate-500 text-[11px]">VARCHAR(180)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-400">
-                  <span>password_hash</span>
-                  <span class="text-slate-500 text-[11px]">VARCHAR(255)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-500 text-[11px]">
-                  <span>created_at / updated_at</span>
-                  <span>TIMESTAMPTZ</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Table 2: tb_stock_transactions -->
-            <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-4">
-              <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-                <span class="font-bold text-white text-xs font-mono flex items-center space-x-1.5">
-                  <mat-icon class="text-indigo-400 text-sm">table_chart</mat-icon>
-                  <span>tb_stock_transactions</span>
-                </span>
-                <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded">1:N Ações B3</span>
-              </div>
-              <ul class="space-y-1.5 text-xs font-mono">
-                <li class="flex items-center justify-between text-indigo-400">
-                  <span>PK id</span>
-                  <span class="text-slate-500 text-[11px]">UUID</span>
-                </li>
-                <li class="flex items-center justify-between text-amber-400">
-                  <span>FK user_id</span>
-                  <span class="text-slate-500 text-[11px]">UUID (CASCADE)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-300">
-                  <span>ticker (INDEX)</span>
-                  <span class="text-slate-500 text-[11px]">VARCHAR(10)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-300">
-                  <span>operation_type</span>
-                  <span class="text-slate-500 text-[11px]">COMPRA/VENDA</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>quantity</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(19,4)</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>unit_price</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(19,4)</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>total_value</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(19,2)</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Table 3: tb_fixed_income_positions -->
-            <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-4">
-              <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-                <span class="font-bold text-white text-xs font-mono flex items-center space-x-1.5">
-                  <mat-icon class="text-teal-400 text-sm">table_chart</mat-icon>
-                  <span>tb_fixed_income_positions</span>
-                </span>
-                <span class="text-[10px] bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded">1:N Renda Fixa</span>
-              </div>
-              <ul class="space-y-1.5 text-xs font-mono">
-                <li class="flex items-center justify-between text-teal-400">
-                  <span>PK id</span>
-                  <span class="text-slate-500 text-[11px]">UUID</span>
-                </li>
-                <li class="flex items-center justify-between text-amber-400">
-                  <span>FK user_id</span>
-                  <span class="text-slate-500 text-[11px]">UUID (CASCADE)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-300">
-                  <span>type / indexer</span>
-                  <span class="text-slate-500 text-[11px]">ENUM STRINGS</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>contracted_rate</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(10,4)</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>invested_amount</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(19,2)</span>
-                </li>
-                <li class="flex items-center justify-between text-emerald-400">
-                  <span>current_amount</span>
-                  <span class="text-slate-500 text-[11px]">NUMERIC(19,2)</span>
-                </li>
-                <li class="flex items-center justify-between text-slate-400">
-                  <span>due_date (INDEX)</span>
-                  <span class="text-slate-500 text-[11px]">DATE</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- CODE VIEWER & EXPLORER -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Sidebar: Files List -->
-          <div class="lg:col-span-4 space-y-3">
-            <!-- Category pills -->
-            <div class="flex flex-wrap gap-1.5 pb-2">
-              @for (cat of ['TODOS', 'Controller', 'Service', 'Exception', 'Test', 'DTO', 'Entity', 'Repository', 'Client', 'Config', 'Migration']; track cat) {
-                <button
-                  type="button"
-                  (click)="filterCategory(cat)"
-                  [class]="selectedCategory() === cat
-                    ? 'px-2.5 py-1 text-xs rounded-lg bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
-                    : 'px-2.5 py-1 text-xs rounded-lg bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'"
-                >
-                  {{ cat }}
-                </button>
-              }
-            </div>
-
-            <!-- List of files -->
-            <div class="space-y-1.5 max-h-[640px] overflow-y-auto pr-1">
-              @for (file of filteredBackendFiles(); track file.id) {
-                <button
-                  type="button"
-                  (click)="selectFile(file.id)"
-                  [class]="selectedFileId() === file.id
-                    ? 'w-full text-left p-3 rounded-xl bg-slate-800/90 border border-emerald-500/40 shadow-sm transition-all'
-                    : 'w-full text-left p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:bg-slate-800/50 hover:border-slate-700 transition-all'"
-                >
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="font-bold text-xs font-mono text-white flex items-center space-x-1.5">
-                      <mat-icon class="text-sm text-emerald-400">description</mat-icon>
-                      <span>{{ file.name }}</span>
-                    </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold"
-                      [class]="file.category === 'Controller' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                               file.category === 'Exception' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                               file.category === 'Entity' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
-                               file.category === 'Repository' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' :
-                               file.category === 'Migration' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                               'bg-slate-700/50 text-slate-300 border border-slate-600/30'"
-                    >
-                      {{ file.category }}
-                    </span>
-                  </div>
-                  <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                    {{ file.description }}
-                  </p>
-                </button>
-              }
-            </div>
-          </div>
-
-          <!-- Main Code Preview -->
-          <div class="lg:col-span-8 flex flex-col rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-sm">
-            <!-- Header bar of code editor -->
-            <div class="px-5 py-3 bg-[#0d121c] border-b border-slate-800 flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-rose-500/60 inline-block"></span>
-                <span class="w-3 h-3 rounded-full bg-amber-500/60 inline-block"></span>
-                <span class="w-3 h-3 rounded-full bg-emerald-500/60 inline-block"></span>
-                <span class="ml-2 font-mono text-xs font-bold text-slate-200">
-                  {{ activeBackendFile().name }}
-                </span>
-                <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">
-                  ({{ activeBackendFile().path }})
-                </span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-[10px] uppercase font-mono px-2 py-0.5 bg-slate-800 text-slate-300 rounded">
-                  {{ activeBackendFile().language }}
-                </span>
-                <button
-                  type="button"
-                  (click)="copyCurrentCode()"
-                  class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                  title="Copiar código"
-                >
-                  <mat-icon class="text-sm">{{ copiedStatus() ? 'done' : 'content_copy' }}</mat-icon>
-                </button>
-              </div>
-            </div>
-
-            <!-- Code display area -->
-            <div class="p-4 overflow-x-auto max-h-[600px] overflow-y-auto bg-[#070a0f]">
-              <pre class="text-xs leading-relaxed font-mono text-slate-300 whitespace-pre"><code>{{ activeBackendFile().code }}</code></pre>
-            </div>
-          </div>
-        </div>
-
-        <!-- TECH LEAD DECISIONS CARD -->
-        <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-6">
-          <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4 flex items-center space-x-2">
-            <mat-icon class="text-base">verified</mat-icon>
-            <span>Boas Práticas de Engenharia Adotadas no FolioHub</span>
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-              <strong class="text-white block font-semibold">1. Precisão Financeira Sem Perda de Centavos</strong>
-              <p class="text-slate-400 leading-relaxed">
-                Nenhum valor financeiro ou taxa utiliza float ou double. BigDecimal com escala monetária (2 casas) ou unitária/taxa (4 casas) associado a RoundingMode.HALF_EVEN elimina o viés de arredondamento sistemático.
-              </p>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-              <strong class="text-white block font-semibold">2. Prevenção do Problema N+1 em JPA</strong>
-              <p class="text-slate-400 leading-relaxed">
-                Todos os relacionamentos @ManyToOne utilizam FetchType.LAZY por padrão. Consultas consolidadas utilizam projeções com Java 21 Records (StockPositionSummary), trazendo apenas as colunas agregadas necessárias.
-              </p>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-              <strong class="text-white block font-semibold">3. Migrations Flyway Idempotentes</strong>
-              <p class="text-slate-400 leading-relaxed">
-                Schema versionado no PostgreSQL com constraints CHECK para garantir quantidades positivas, tipos restritos e integridade antes mesmo de tocar a camada de aplicação.
-              </p>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-              <strong class="text-white block font-semibold">4. Repositories Customizados com JPQL Otimizado</strong>
-              <p class="text-slate-400 leading-relaxed">
-                Métodos como summarizeOpenPositionsByUserId realizam o agrupamento ponderado e filtragem de saldo remanescente diretamente no banco de dados.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     }
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 3: LABORATÓRIO DE PRECISÃO (BIGDECIMAL VS DOUBLE) -->
-    <!-- ========================================================================= -->
+    <!-- ======================================================================= -->
+    <!-- ABA 5: LABORATÓRIO DE PRECISÃO (BIGDECIMAL VS DOUBLE)                    -->
+    <!-- ======================================================================= -->
     @if (activeTab() === 'precision') {
-      <div class="space-y-6">
-        <!-- Explanatory header -->
-        <div class="rounded-2xl bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/30 p-6">
-          <div class="flex items-center space-x-3 mb-2">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <mat-icon class="text-xl">warning</mat-icon>
-            </div>
+      <div class="space-y-5">
+        
+        <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
             <div>
-              <h2 class="text-lg font-bold text-white">
-                Por que float e double são terminantemente proibidos em Finanças?
-              </h2>
-              <p class="text-xs text-slate-300">
-                Demonstração prática de ponto flutuante binário (IEEE 754) vs BigDecimal com Banker's Rounding (HALF_EVEN)
-              </p>
+              <h2 class="text-sm font-bold text-slate-900">Laboratório de Precisão Financeira: BigDecimal vs Double</h2>
+              <p class="text-xs text-slate-500">Demonstração empírica do erro cumulativo IEEE 754 de ponto flutuante em operações financeiras</p>
             </div>
-          </div>
-          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-            No padrão IEEE 754 utilizado por <code class="text-amber-300">float</code> e <code class="text-amber-300">double</code>, frações decimais simples como <code class="text-amber-300">0.1</code> e <code class="text-amber-300">0.2</code> não possuem representação binária exata (tornam-se dízimas periódicas binárias: <code class="text-amber-300">0.30000000000000004</code>). Em um portfólio de investimentos com milhares de operações, isso gera evasão de centavos e quebra relatórios contábeis de auditoria.
-          </p>
-        </div>
-
-        <!-- Interactive Benchmark Simulator -->
-        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 class="text-base font-bold text-white">Simulador de Acúmulo de Emolumentos e Taxas B3</h3>
-              <p class="text-xs text-slate-400">Multiplicações acumuladas simulando micro-transações de mercado</p>
-            </div>
-            <!-- Quick preset buttons -->
-            <div class="flex items-center space-x-2">
-              <span class="text-xs text-slate-400">Nº de Operações:</span>
+            
+            <!-- Controle de Amostra -->
+            <div class="inline-flex rounded-md border border-slate-200 bg-slate-50 p-0.5 text-xs">
               <button
                 type="button"
                 (click)="setPrecisionCount(1000)"
-                [class]="precisionTestCount() === 1000
-                  ? 'px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 text-white'
-                  : 'px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                [class]="precisionTestCount() === 1000 ? 'h-6 px-2 rounded bg-white text-blue-600 font-bold shadow-xs' : 'h-6 px-2 text-slate-600 font-medium'"
               >
-                1.000
+                1.000 ops
               </button>
               <button
                 type="button"
                 (click)="setPrecisionCount(10000)"
-                [class]="precisionTestCount() === 10000
-                  ? 'px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 text-white'
-                  : 'px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                [class]="precisionTestCount() === 10000 ? 'h-6 px-2 rounded bg-white text-blue-600 font-bold shadow-xs' : 'h-6 px-2 text-slate-600 font-medium'"
               >
-                10.000
+                10.000 ops
               </button>
               <button
                 type="button"
                 (click)="setPrecisionCount(100000)"
-                [class]="precisionTestCount() === 100000
-                  ? 'px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 text-white'
-                  : 'px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                [class]="precisionTestCount() === 100000 ? 'h-6 px-2 rounded bg-white text-blue-600 font-bold shadow-xs' : 'h-6 px-2 text-slate-600 font-medium'"
               >
-                100.000
+                100.000 ops
               </button>
             </div>
           </div>
 
-          <!-- COMPARISON RESULTS GRID -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Double / Float Card -->
-            <div class="rounded-xl bg-rose-950/20 border border-rose-500/30 p-5 space-y-4">
-              <div class="flex items-center justify-between pb-3 border-b border-rose-500/20">
-                <span class="font-bold text-rose-400 text-sm flex items-center space-x-2">
-                  <mat-icon class="text-base">cancel</mat-icon>
-                  <span>Double / Float (Incorreto)</span>
-                </span>
-                <span class="text-[10px] bg-rose-500/10 text-rose-300 px-2 py-0.5 rounded font-mono">IEEE 754</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+            
+            <div class="p-3 rounded-lg border border-rose-200 bg-rose-50/40">
+              <div class="text-[11px] uppercase font-semibold text-rose-800 tracking-wider">Double / Float (IEEE 754)</div>
+              <div class="text-lg font-bold text-rose-900 tabular-nums mt-1 font-mono">
+                R$ {{ precisionComparison().floatAccumulated | number:'1.4-4' }}
               </div>
-              <div class="space-y-2 text-xs">
-                <div class="flex justify-between text-slate-400">
-                  <span>Cálculo Unitário (R$ 19.99 * 8.65%):</span>
-                  <span class="font-mono text-slate-200">{{ precisionComparison().singleFeeDouble }}</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>Soma de {{ precisionComparison().count }} operações:</span>
-                  <span class="font-mono text-rose-300 font-bold text-sm">
-                    {{ precisionComparison().floatAccumulated }}
-                  </span>
-                </div>
+              <div class="text-[11px] text-rose-700 mt-1">
+                Representação binária inexata; propaga dízimas e perdas de centavos em balanços contábeis.
               </div>
-              <p class="text-[11px] text-rose-300/80 leading-relaxed">
-                Note o ruído nas últimas casas decimais gerado por imprecisão de truncamento binário acumulado.
-              </p>
             </div>
 
-            <!-- BigDecimal Card -->
-            <div class="rounded-xl bg-emerald-950/20 border border-emerald-500/30 p-5 space-y-4">
-              <div class="flex items-center justify-between pb-3 border-b border-emerald-500/20">
-                <span class="font-bold text-emerald-400 text-sm flex items-center space-x-2">
-                  <mat-icon class="text-base">check_circle</mat-icon>
-                  <span>BigDecimal + HALF_EVEN (FolioHub)</span>
-                </span>
-                <span class="text-[10px] bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded font-mono">Banker's Rounding</span>
+            <div class="p-3 rounded-lg border border-emerald-200 bg-emerald-50/40">
+              <div class="text-[11px] uppercase font-semibold text-emerald-800 tracking-wider">BigDecimal (HALF_EVEN)</div>
+              <div class="text-lg font-bold text-emerald-900 tabular-nums mt-1 font-mono">
+                R$ {{ precisionComparison().bigDecimalAccumulated | number:'1.2-2' }}
               </div>
-              <div class="space-y-2 text-xs">
-                <div class="flex justify-between text-slate-400">
-                  <span>Cálculo Unitário Arredondado:</span>
-                  <span class="font-mono text-slate-200">R$ {{ precisionComparison().singleFeeBigDecimal }}</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>Soma de {{ precisionComparison().count }} operações:</span>
-                  <span class="font-mono text-emerald-300 font-bold text-sm">
-                    {{ precisionComparison().bigDecimalAccumulated | currency:'BRL':'symbol':'1.2-2' }}
-                  </span>
-                </div>
+              <div class="text-[11px] text-emerald-700 mt-1">
+                Aritmética decimal de precisão arbitrária e arredondamento bancário sem desvio estatístico.
               </div>
-              <p class="text-[11px] text-emerald-300/80 leading-relaxed">
-                Precisão monetária absoluta de 2 casas, sem viés estatístico de alta ou baixa na ponta da moeda.
-              </p>
             </div>
+
+            <div class="p-3 rounded-lg border border-slate-200 bg-slate-50">
+              <div class="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">Discrepância Acumulada</div>
+              <div class="text-lg font-bold text-slate-900 tabular-nums mt-1 font-mono">
+                R$ {{ precisionComparison().difference | number:'1.4-4' }}
+              </div>
+              <div class="text-[11px] text-slate-600 mt-1">
+                Equivalente a <strong class="text-slate-900">{{ precisionComparison().differenceInCents }} centavos</strong> perdidos em conciliação.
+              </div>
+            </div>
+
           </div>
 
-          <!-- Difference alert -->
-          <div class="rounded-xl bg-slate-950 p-4 border border-slate-800 flex items-center justify-between text-xs">
-            <span class="text-slate-300">
-              Divergência Contábil Identificada no Volume Simulado:
-            </span>
-            <span class="font-mono font-bold text-amber-400 text-sm">
-              {{ precisionComparison().differenceInCents }} centavos de desvio
-            </span>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-600 leading-relaxed">
+            <strong class="text-slate-900">Fundamentação Técnica:</strong> No FolioHub, todas as operações financeiras são implementadas com <code class="px-1 py-0.5 bg-slate-200/70 rounded text-[11px] font-mono">BigDecimal</code> no backend Java 21 com <code class="px-1 py-0.5 bg-slate-200/70 rounded text-[11px] font-mono">RoundingMode.HALF_EVEN</code> e escalas contábeis fixas (2 para moeda, 4 para preços médios e 8 para taxas diárias), garantindo total conformidade com as normas da B3 e da Receita Federal.
           </div>
         </div>
+
+      </div>
+    }
+
+    <!-- ======================================================================= -->
+    <!-- ABA 6: ARQUITETURA & CÓDIGO BACKEND (SPRING BOOT 3 + JAVA 21)           -->
+    <!-- ======================================================================= -->
+    @if (activeTab() === 'backend') {
+      <div class="space-y-4">
+        
+        <!-- BARRA DE FILTROS DE CATEGORIA DO BACKEND -->
+        <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          
+          <div class="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar">
+            @for (cat of ['TODOS', 'Controller', 'Service', 'Repository', 'Entity', 'Exception', 'Test']; track cat) {
+              <button
+                type="button"
+                (click)="filterCategory(cat)"
+                [class]="selectedCategory() === cat
+                  ? 'h-7 px-2.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-xs'
+                  : 'h-7 px-2.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+              >
+                {{ cat }}
+              </button>
+            }
+          </div>
+
+          <div class="text-xs text-slate-500">
+            Total: <span class="font-bold text-slate-800">{{ filteredBackendFiles().length }}</span> arquivos
+          </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- Lista Lateral de Arquivos -->
+          <div class="lg:col-span-4 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs h-[650px] flex flex-col">
+            <div class="p-2.5 border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+              Catálogo de Classes Java 21 / Spring Boot 3
+            </div>
+
+            <div class="flex-1 overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
+              @for (file of filteredBackendFiles(); track file.id) {
+                <button
+                  type="button"
+                  (click)="selectFile(file.id)"
+                  class="w-full text-left p-3 hover:bg-slate-50 transition-colors block"
+                  [class.bg-blue-50/40]="selectedFileId() === file.id"
+                  [class.border-l-4]="selectedFileId() === file.id"
+                  [class.border-l-blue-600]="selectedFileId() === file.id"
+                >
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-slate-900 font-mono">{{ file.name }}</span>
+                    <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                      {{ file.category }}
+                    </span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                    {{ file.description }}
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Visualizador de Código com Sintaxe e Ações -->
+          <div class="lg:col-span-8 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs h-[650px] flex flex-col">
+            
+            <!-- Barra superior do arquivo aberto -->
+            <div class="px-4 py-2.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <mat-icon class="text-slate-500 text-base">description</mat-icon>
+                <div>
+                  <span class="text-xs font-bold text-slate-900 font-mono">{{ activeBackendFile().name }}</span>
+                  <span class="text-[11px] text-slate-500 ml-2 font-mono">({{ activeBackendFile().path }})</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                (click)="copyCurrentCode()"
+                class="h-7 px-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold inline-flex items-center space-x-1 shadow-xs"
+              >
+                <mat-icon class="text-sm">{{ copiedStatus() ? 'check' : 'content_copy' }}</mat-icon>
+                <span>{{ copiedStatus() ? 'Copiado!' : 'Copiar Código' }}</span>
+              </button>
+            </div>
+
+            <!-- Descrição e Propósito Arquitetural -->
+            <div class="px-4 py-2 bg-slate-50/50 border-b border-slate-100 text-xs text-slate-600">
+              {{ activeBackendFile().description }}
+            </div>
+
+            <!-- Bloco de Código com Scrollbar e Formatação Técnica -->
+            <div class="flex-1 overflow-auto p-4 bg-slate-900 text-slate-100 text-xs font-mono custom-scrollbar leading-relaxed">
+              <pre class="m-0"><code class="text-[12px] font-mono">{{ activeBackendFile().code }}</code></pre>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
     }
 
   </main>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: REGISTRAR NOVA TRANSAÇÃO B3 -->
+  <!-- 4. MODAL: NOVA TRANSAÇÃO B3 (COMPRA / VENDA)                              -->
   <!-- ========================================================================= -->
   @if (isAddStockModalOpen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div class="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-lg shadow-lg max-w-md w-full overflow-hidden">
+        
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <mat-icon class="text-base">add_business</mat-icon>
-            </div>
-            <h3 class="text-base font-bold text-white">Registrar Ordem B3</h3>
+            <mat-icon class="text-blue-600 text-base">add_business</mat-icon>
+            <h3 class="text-sm font-bold text-slate-900">Registrar Ordem na B3</h3>
           </div>
           <button
             type="button"
             (click)="closeAddStockModal()"
-            class="text-slate-400 hover:text-white"
+            class="text-slate-400 hover:text-slate-600"
           >
-            <mat-icon class="text-base">close</mat-icon>
+            <mat-icon class="text-lg">close</mat-icon>
           </button>
         </div>
 
-        <form [formGroup]="stockForm" (ngSubmit)="submitStockTransaction()" class="space-y-4 text-xs">
-          <div>
-            <label for="stock-ticker" class="block font-medium text-slate-300 mb-1">Ticker da B3</label>
-            <input
-              id="stock-ticker"
-              type="text"
-              formControlName="ticker"
-              class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono uppercase focus:outline-none focus:border-emerald-500"
-              placeholder="ex: PETR4, WEGE3, ITUB4"
-            />
-          </div>
-
+        <form [formGroup]="stockForm" (ngSubmit)="submitStockTransaction()" class="p-4 space-y-3">
+          
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="stock-type" class="block font-medium text-slate-300 mb-1">Tipo de Operação</label>
+              <label for="stock-ticker" class="block text-xs font-semibold text-slate-700 mb-1">Ticker B3</label>
+              <input
+                id="stock-ticker"
+                type="text"
+                formControlName="ticker"
+                placeholder="Ex: PETR4, VALE3"
+                class="w-full h-8 px-2.5 text-xs uppercase border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-bold"
+              />
+            </div>
+
+            <div>
+              <label for="stock-type" class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Operação</label>
               <select
                 id="stock-type"
                 formControlName="type"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-semibold bg-white"
               >
                 <option value="COMPRA">COMPRA</option>
                 <option value="VENDA">VENDA</option>
               </select>
             </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="stock-quantity" class="block font-medium text-slate-300 mb-1">Quantidade</label>
+              <label for="stock-quantity" class="block text-xs font-semibold text-slate-700 mb-1">Quantidade</label>
               <input
                 id="stock-quantity"
                 type="number"
                 formControlName="quantity"
                 min="1"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium tabular-nums"
+              />
+            </div>
+
+            <div>
+              <label for="stock-unitPrice" class="block text-xs font-semibold text-slate-700 mb-1">Preço Unitário (R$)</label>
+              <input
+                id="stock-unitPrice"
+                type="number"
+                step="0.01"
+                formControlName="unitPrice"
+                min="0.01"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium tabular-nums"
               />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="stock-unit-price" class="block font-medium text-slate-300 mb-1">Preço Unitário (R$)</label>
+              <label for="stock-brokerageFees" class="block text-xs font-semibold text-slate-700 mb-1">Corretagem / Taxas (R$)</label>
               <input
-                id="stock-unit-price"
+                id="stock-brokerageFees"
                 type="number"
                 step="0.01"
-                formControlName="unitPrice"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono focus:outline-none focus:border-emerald-500"
+                formControlName="brokerageFees"
+                min="0"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium tabular-nums"
               />
             </div>
+
             <div>
-              <label for="stock-operation-date" class="block font-medium text-slate-300 mb-1">Data da Operação</label>
+              <label for="stock-operationDate" class="block text-xs font-semibold text-slate-700 mb-1">Data da Operação</label>
               <input
-                id="stock-operation-date"
+                id="stock-operationDate"
                 type="date"
                 formControlName="operationDate"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium"
               />
             </div>
           </div>
 
-          <div class="pt-2 flex justify-end space-x-2">
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
             <button
               type="button"
               (click)="closeAddStockModal()"
-              class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold"
+              class="h-8 px-3 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               [disabled]="stockForm.invalid"
-              class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold flex items-center space-x-1"
+              class="h-8 px-4 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold shadow-xs"
             >
-              <mat-icon class="text-sm">save</mat-icon>
-              <span>Salvar Transação</span>
+              Confirmar e Salvar
             </button>
           </div>
+
         </form>
+
       </div>
     </div>
   }
 
   <!-- ========================================================================= -->
-  <!-- MODAL: CADASTRAR RENDA FIXA -->
+  <!-- 5. MODAL: NOVO APORTE RENDA FIXA                                          -->
   <!-- ========================================================================= -->
   @if (isAddFixedIncomeModalOpen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div class="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-lg shadow-lg max-w-md w-full overflow-hidden">
+        
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center">
-              <mat-icon class="text-base">account_balance</mat-icon>
-            </div>
-            <h3 class="text-base font-bold text-white">Novo Título de Renda Fixa</h3>
+            <mat-icon class="text-emerald-600 text-base">savings</mat-icon>
+            <h3 class="text-sm font-bold text-slate-900">Cadastrar Posição de Renda Fixa</h3>
           </div>
           <button
             type="button"
             (click)="closeAddFixedIncomeModal()"
-            class="text-slate-400 hover:text-white"
+            class="text-slate-400 hover:text-slate-600"
           >
-            <mat-icon class="text-base">close</mat-icon>
+            <mat-icon class="text-lg">close</mat-icon>
           </button>
         </div>
 
-        <form [formGroup]="fixedIncomeForm" (ngSubmit)="submitFixedIncome()" class="space-y-3 text-xs">
+        <form [formGroup]="fixedIncomeForm" (ngSubmit)="submitFixedIncome()" class="p-4 space-y-3">
+          
           <div>
-            <label for="fi-asset-name" class="block font-medium text-slate-300 mb-1">Descrição do Ativo</label>
+            <label for="fi-assetName" class="block text-xs font-semibold text-slate-700 mb-1">Nome do Ativo</label>
             <input
-              id="fi-asset-name"
+              id="fi-assetName"
               type="text"
               formControlName="assetName"
-              placeholder="ex: CDB Banco Inter 115% CDI"
-              class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+              placeholder="Ex: CDB Banco Inter 115% CDI"
+              class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium"
             />
           </div>
 
           <div>
-            <label for="fi-issuer" class="block font-medium text-slate-300 mb-1">Instituição Emissora</label>
+            <label for="fi-issuer" class="block text-xs font-semibold text-slate-700 mb-1">Instituição Emissora</label>
             <input
               id="fi-issuer"
               type="text"
               formControlName="issuer"
-              placeholder="ex: Banco Inter S.A."
-              class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+              placeholder="Ex: Banco Inter S.A."
+              class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium"
             />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="fi-type" class="block font-medium text-slate-300 mb-1">Tipo de Título</label>
+              <label for="fi-type" class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Título</label>
               <select
                 id="fi-type"
                 formControlName="type"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-semibold bg-white"
               >
                 <option value="CDB">CDB</option>
-                <option value="LCI">LCI</option>
-                <option value="LCA">LCA</option>
+                <option value="LCI">LCI (Isento)</option>
+                <option value="LCA">LCA (Isento)</option>
                 <option value="TESOURO">TESOURO</option>
-                <option value="CRI">CRI</option>
-                <option value="CRA">CRA</option>
+                <option value="CRI">CRI (Isento)</option>
+                <option value="CRA">CRA (Isento)</option>
                 <option value="DEBENTURE">DEBENTURE</option>
               </select>
             </div>
+
             <div>
-              <label for="fi-indexer" class="block font-medium text-slate-300 mb-1">Indexador</label>
+              <label for="fi-indexer" class="block text-xs font-semibold text-slate-700 mb-1">Indexador</label>
               <select
                 id="fi-indexer"
                 formControlName="indexer"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-semibold bg-white"
               >
                 <option value="CDI">CDI</option>
                 <option value="PREFIXADO">PREFIXADO</option>
@@ -1021,150 +1483,168 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="fi-contracted-rate" class="block font-medium text-slate-300 mb-1">Taxa Contratada (%)</label>
+              <label for="fi-contractedRate" class="block text-xs font-semibold text-slate-700 mb-1">Taxa Contratada (%)</label>
               <input
-                id="fi-contracted-rate"
+                id="fi-contractedRate"
                 type="number"
                 step="0.01"
                 formControlName="contractedRate"
-                placeholder="115.0 ou 6.45"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium tabular-nums"
               />
             </div>
+
             <div>
-              <label for="fi-invested-amount" class="block font-medium text-slate-300 mb-1">Valor Aporte (R$)</label>
+              <label for="fi-investedAmount" class="block text-xs font-semibold text-slate-700 mb-1">Valor Aportado (R$)</label>
               <input
-                id="fi-invested-amount"
+                id="fi-investedAmount"
                 type="number"
                 step="100"
                 formControlName="investedAmount"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium tabular-nums"
               />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="fi-investment-date" class="block font-medium text-slate-300 mb-1">Data de Aporte</label>
+              <label for="fi-investmentDate" class="block text-xs font-semibold text-slate-700 mb-1">Data da Aplicação</label>
               <input
-                id="fi-investment-date"
+                id="fi-investmentDate"
                 type="date"
                 formControlName="investmentDate"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium"
               />
             </div>
+
             <div>
-              <label for="fi-due-date" class="block font-medium text-slate-300 mb-1">Vencimento</label>
+              <label for="fi-dueDate" class="block text-xs font-semibold text-slate-700 mb-1">Data de Vencimento</label>
               <input
-                id="fi-due-date"
+                id="fi-dueDate"
                 type="date"
                 formControlName="dueDate"
-                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-teal-500"
+                class="w-full h-8 px-2.5 text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:outline-hidden font-medium"
               />
             </div>
           </div>
 
-          <div class="pt-2 flex justify-end space-x-2">
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
             <button
               type="button"
               (click)="closeAddFixedIncomeModal()"
-              class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold"
+              class="h-8 px-3 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               [disabled]="fixedIncomeForm.invalid"
-              class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold flex items-center space-x-1"
+              class="h-8 px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold shadow-xs"
             >
-              <mat-icon class="text-sm">save</mat-icon>
-              <span>Salvar Posição</span>
+              Cadastrar Posição
             </button>
           </div>
+
         </form>
+
       </div>
     </div>
   }
 
   <!-- ========================================================================= -->
-  <!-- MODAL: HISTÓRICO DE ORDENS DO TICKER -->
+  <!-- 6. MODAL: EXTRATO DE TRANSAÇÕES DO TICKER                                 -->
   <!-- ========================================================================= -->
   @if (selectedTickerForHistory()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div class="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-lg shadow-lg max-w-xl w-full overflow-hidden">
+        
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <mat-icon class="text-base">receipt_long</mat-icon>
-            </div>
-            <div>
-              <h3 class="text-base font-bold text-white">Histórico de Ordens B3: {{ selectedTickerForHistory() }}</h3>
-              <p class="text-[11px] text-slate-400">Consultado via StockTransactionRepository</p>
-            </div>
+            <mat-icon class="text-blue-600 text-base">receipt_long</mat-icon>
+            <h3 class="text-sm font-bold text-slate-900">Extrato de Operações: {{ selectedTickerForHistory() }}</h3>
           </div>
           <button
             type="button"
             (click)="closeHistoryModal()"
-            class="text-slate-400 hover:text-white"
+            class="text-slate-400 hover:text-slate-600"
           >
-            <mat-icon class="text-base">close</mat-icon>
+            <mat-icon class="text-lg">close</mat-icon>
           </button>
         </div>
 
-        <div class="max-h-80 overflow-y-auto space-y-2 pr-1">
-          @for (tx of tickerTransactions(); track tx.id) {
-            <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between text-xs">
-              <div class="flex items-center space-x-3">
-                <span
-                  [class]="tx.type === 'COMPRA'
-                    ? 'px-2 py-0.5 rounded font-bold text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                    : 'px-2 py-0.5 rounded font-bold text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30'"
-                >
-                  {{ tx.type }}
-                </span>
-                <div>
-                  <div class="font-bold text-white">{{ tx.quantity }} cotas a R$ {{ tx.unitPrice | number:'1.2-4' }}</div>
-                  <div class="text-[11px] text-slate-500">Data: {{ tx.operationDate }}</div>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="font-mono font-bold text-white">
-                  {{ tx.totalValue | currency:'BRL':'symbol':'1.2-2' }}
-                </div>
-                <div class="text-[10px] text-slate-500">Taxas: R$ {{ tx.brokerageFees | number:'1.2-2' }}</div>
-              </div>
-            </div>
-          }
+        <div class="p-4 overflow-x-auto max-h-[400px] custom-scrollbar">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-semibold h-8">
+                <th class="px-3 py-1.5 text-left">Data</th>
+                <th class="px-3 py-1.5 text-center">Tipo</th>
+                <th class="px-3 py-1.5 text-right">Qtd</th>
+                <th class="px-3 py-1.5 text-right">Preço Unit.</th>
+                <th class="px-3 py-1.5 text-right">Total</th>
+                <th class="px-3 py-1.5 text-right">Taxas</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (tx of tickerTransactions(); track tx.id) {
+                <tr class="hover:bg-slate-50/70">
+                  <td class="px-3 py-2 text-slate-600 font-medium tabular-nums">{{ tx.operationDate }}</td>
+                  <td class="px-3 py-2 text-center">
+                    <span
+                      class="px-1.5 py-0.2 rounded text-[10px] font-bold"
+                      [class.bg-emerald-50]="tx.type === 'COMPRA'"
+                      [class.text-emerald-700]="tx.type === 'COMPRA'"
+                      [class.bg-rose-50]="tx.type === 'VENDA'"
+                      [class.text-rose-700]="tx.type === 'VENDA'"
+                    >
+                      {{ tx.type }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-2 text-right font-medium text-slate-800 tabular-nums">{{ tx.quantity }}</td>
+                  <td class="px-3 py-2 text-right font-semibold text-slate-900 tabular-nums">R$ {{ tx.unitPrice | number:'1.2-2' }}</td>
+                  <td class="px-3 py-2 text-right font-bold text-slate-900 tabular-nums">R$ {{ tx.totalValue | number:'1.2-2' }}</td>
+                  <td class="px-3 py-2 text-right text-slate-500 tabular-nums">R$ {{ tx.brokerageFees | number:'1.2-2' }}</td>
+                </tr>
+              }
+              @if (tickerTransactions().length === 0) {
+                <tr>
+                  <td colspan="6" class="px-3 py-6 text-center text-slate-500">
+                    Nenhuma operação registrada para este ticker.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
 
-        <div class="pt-2 flex justify-end">
+        <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50 flex justify-end">
           <button
             type="button"
             (click)="closeHistoryModal()"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 font-semibold text-xs"
+            class="h-8 px-4 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold"
           >
             Fechar
           </button>
         </div>
+
       </div>
     </div>
   }
 
-  <!-- FOOTER -->
-  <footer class="mt-auto border-t border-slate-800/60 py-4 bg-[#070a0f]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-      <div>
-        <strong class="text-slate-400 font-semibold">FolioHub</strong> • Desenvolvido para Portfólio de Estágio Tech Lead / Full-Stack
+  <!-- ========================================================================= -->
+  <!-- 7. RODAPÉ INSTITUCIONAL DISCRETO                                          -->
+  <!-- ========================================================================= -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-800">FolioHub</span>
+        <span>·</span>
+        <span>Plataforma de Gestão Patrimonial e Análise B3</span>
       </div>
-      <div class="flex items-center space-x-4">
-        <span>Java 21</span>
-        <span>•</span>
-        <span>Spring Boot 3.3</span>
-        <span>•</span>
-        <span>PostgreSQL</span>
-        <span>•</span>
-        <span>Angular 21 Standalone</span>
+      <div class="flex items-center space-x-4 text-[11px] text-slate-400">
+        <span>Spring Boot 3 · Java 21 · Angular 21 Standalone</span>
+        <span>·</span>
+        <span>RFC 7807 ProblemDetails</span>
       </div>
     </div>
   </footer>
+
 </div>

@@ -1,0 +1,43 @@
+/* Status Invest & Institutional Financial Design System */
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #F8F9FA;
+  color: #0F172A;
+}
+
+/* Scrollbar técnica e discreta para o visualizador de código e tabelas densas */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Alinhamento estrito e numerais tabulares */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Indicadores de direção discretos */
+.arrow-up {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+.arrow-down {
+  display: inline-block;
+  transform: translateY(1px);
+}
