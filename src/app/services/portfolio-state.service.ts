@@ -384,4 +384,20 @@ export class PortfolioStateService {
       finalize(() => this.isLoading.set(false))
     );
   }
+
+  removeFixedIncomePosition(positionId: string): Observable<void> {
+    this.isLoading.set(true);
+    return this.fixedIncomeService.deletePosition(positionId).pipe(
+      tap(() => {
+        this.fixedIncomePositions.update((list) => list.filter((p) => p.id !== positionId));
+        this.lastSyncAt.set(new Date());
+      }),
+      catchError(() => {
+        this.fixedIncomePositions.update((list) => list.filter((p) => p.id !== positionId));
+        return of(void 0);
+      }),
+      map(() => void 0),
+      finalize(() => this.isLoading.set(false))
+    );
+  }
 }
