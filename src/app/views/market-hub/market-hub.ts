@@ -20,6 +20,7 @@ interface MarketFeaturedStock {
   price: number;
   change: number;
   pl: number;
+  pvp?: number;
   dy: number;
   volume: string;
 }
@@ -270,7 +271,7 @@ interface MarketFeaturedStock {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          @for (stock of featuredStocks; track stock.ticker) {
+          @for (stock of featuredStocks(); track stock.ticker) {
             <a
               [routerLink]="['/stocks', stock.ticker]"
               class="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
@@ -330,11 +331,17 @@ interface MarketFeaturedStock {
                 <div class="flex items-center gap-3">
                   <div>
                     <span class="text-[10px] text-slate-400 block font-semibold">P/L</span>
-                    <span class="font-bold tabular-nums text-slate-800">{{ stock.pl | number:'1.1-1':'pt-BR' }}</span>
+                    <span class="font-bold tabular-nums text-slate-800">{{ stock.pl | number:'1.2-2':'pt-BR' }}</span>
                   </div>
+                  @if (stock.pvp !== undefined) {
+                    <div>
+                      <span class="text-[10px] text-slate-400 block font-semibold">P/VP</span>
+                      <span class="font-bold tabular-nums text-slate-800">{{ stock.pvp | number:'1.2-2':'pt-BR' }}</span>
+                    </div>
+                  }
                   <div>
-                    <span class="text-[10px] text-slate-400 block font-semibold">DY</span>
-                    <span class="font-bold tabular-nums text-emerald-600">{{ stock.dy | number:'1.1-1':'pt-BR' }}%</span>
+                    <span class="text-[10px] text-slate-400 block font-semibold">DY (12M)</span>
+                    <span class="font-bold tabular-nums text-slate-800">{{ stock.dy | number:'1.2-2':'pt-BR' }}%</span>
                   </div>
                 </div>
 
@@ -360,68 +367,74 @@ export class MarketHub implements OnInit {
 
   readonly popularTickers = ['PETR4', 'VALE3', 'WEGE3', 'ITUB4', 'BBAS3', 'MXRF11', 'B3SA3', 'RENT3'];
 
-  readonly featuredStocks: MarketFeaturedStock[] = [
+  readonly featuredStocks = signal<MarketFeaturedStock[]>([
     {
       ticker: 'PETR4',
       name: 'Petrobras PN',
       sector: 'Petróleo & Gás',
-      price: 38.45,
-      change: 1.45,
-      pl: 4.8,
-      dy: 14.8,
+      price: 36.10,
+      change: 0.85,
+      pl: 4.25,
+      pvp: 1.18,
+      dy: 13.71,
       volume: 'R$ 1,4 Bi',
     },
     {
       ticker: 'VALE3',
       name: 'Vale S.A. ON',
       sector: 'Mineração',
-      price: 62.30,
-      change: -0.68,
-      pl: 6.2,
-      dy: 9.2,
-      volume: 'R$ 980 Mi',
+      price: 54.80,
+      change: -0.45,
+      pl: 6.51,
+      pvp: 1.24,
+      dy: 8.72,
+      volume: 'R$ 980,0 Mi',
     },
     {
       ticker: 'WEGE3',
       name: 'WEG S.A. ON',
       sector: 'Bens de Capital',
-      price: 51.15,
+      price: 52.80,
       change: 0.95,
-      pl: 32.4,
-      dy: 2.2,
-      volume: 'R$ 410 Mi',
+      pl: 35.44,
+      pvp: 11.12,
+      dy: 1.55,
+      volume: 'R$ 410,0 Mi',
     },
     {
       ticker: 'ITUB4',
       name: 'Itaú Unibanco PN',
       sector: 'Financeiro',
-      price: 34.80,
+      price: 34.50,
       change: 0.32,
-      pl: 8.9,
-      dy: 7.5,
-      volume: 'R$ 680 Mi',
+      pl: 8.16,
+      pvp: 1.83,
+      dy: 7.59,
+      volume: 'R$ 680,0 Mi',
     },
     {
       ticker: 'BBAS3',
       name: 'Banco do Brasil ON',
       sector: 'Financeiro',
-      price: 28.90,
-      change: 1.10,
-      pl: 4.5,
-      dy: 10.2,
-      volume: 'R$ 520 Mi',
+      price: 27.50,
+      change: 0.65,
+      pl: 4.45,
+      pvp: 0.87,
+      dy: 9.49,
+      volume: 'R$ 520,0 Mi',
     },
     {
       ticker: 'MXRF11',
       name: 'Maxi Renda FII',
       sector: 'Fundos Imobiliários',
-      price: 10.25,
+      price: 9.85,
       change: 0.10,
-      pl: 11.2,
-      dy: 12.5,
-      volume: 'R$ 18 Mi',
+      pl: 10.59,
+      pvp: 1.05,
+      dy: 11.98,
+      volume: 'R$ 14,5 Mi',
     },
-  ];
+  ]);
 
   readonly searchForm = new FormGroup({
     ticker: new FormControl<string>('', {
@@ -435,6 +448,31 @@ export class MarketHub implements OnInit {
       next: (data) => this.macroData.set(data),
       error: (err: unknown) => console.debug('Macro indicators offline, using defaults:', err),
     });
+
+    for (const item of this.featuredStocks()) {
+      this.marketService.getStockQuote(item.ticker).subscribe({
+        next: (quote) => {
+          this.featuredStocks.update((list) =>
+            list.map((s) =>
+              s.ticker === item.ticker
+                ? {
+                    ...s,
+                    name: quote.companyName || s.name,
+                    sector: quote.sector || s.sector,
+                    price: quote.regularMarketPrice ?? s.price,
+                    change: quote.regularMarketChangePercent ?? s.change,
+                    pl: quote.priceEarnings ?? s.pl,
+                    pvp: quote.priceToBook ?? s.pvp,
+                    dy: quote.dividendYield ?? s.dy,
+                    volume: quote.volume24h || s.volume,
+                  }
+                : s
+            )
+          );
+        },
+        error: (err: unknown) => console.debug(`Featured quote fallback for ${item.ticker}:`, err),
+      });
+    }
   }
 
   onSearchSubmit(): void {

@@ -30,24 +30,38 @@ public class BrapiClient {
     }
 
     /**
-     * Realiza a chamada HTTP real para o endpoint da Brapi sem nenhum dado mock ou fallback estático.
-     * Em caso de ticker inexistente (404), lança ResourceNotFoundException.
-     * Em caso de falha externa/timeout/5xx da Brapi, lança MarketDataUnavailableException (mapeada para HTTP 502 Bad Gateway).
+     * Realiza a chamada HTTP real para o endpoint da Brapi priorizando os módulos
+     * fundamentalistas completos (defaultKeyStatistics, financialData).
+     * Caso o plano da chave de API não suporte módulos avançados para o ticker solicitado (HTTP 400/401/403),
+     * executa fallback transparente para a consulta fundamentalista padrão.
      */
     public BrapiStockResultDto fetchStockQuote(String ticker) {
         String normalizedTicker = ticker.trim().toUpperCase();
 
         try {
+            return executeBrapiRequest(normalizedTicker, true);
+        } catch (MarketDataUnavailableException | RestClientResponseException ex) {
+            log.debug("Fallback para consulta padrão da Brapi sem módulos extras para {}: {}", normalizedTicker, ex.getMessage());
+            return executeBrapiRequest(normalizedTicker, false);
+        }
+    }
+
+    private BrapiStockResultDto executeBrapiRequest(String normalizedTicker, boolean includeExtendedModules) {
+        try {
             StringBuilder uriBuilder = new StringBuilder("/quote/")
                     .append(normalizedTicker)
                     .append("?range=1d&interval=1d&fundamental=true");
+
+            if (includeExtendedModules) {
+                uriBuilder.append("&modules=defaultKeyStatistics,financialData");
+            }
 
             if (apiToken != null && !apiToken.isBlank()) {
                 uriBuilder.append("&token=").append(apiToken.trim());
             }
 
             String uri = uriBuilder.toString();
-            log.info("Executando consulta real de cotação na Brapi: /quote/{}", normalizedTicker);
+            log.info("Executando consulta real de cotação na Brapi: /quote/{} (extended={})", normalizedTicker, includeExtendedModules);
 
             BrapiResponseDto response = restClient.get()
                     .uri(uri)

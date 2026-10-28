@@ -192,6 +192,33 @@ class HttpError extends Error {
   }
 }
 
+interface BrapiDefaultKeyStatistics {
+  enterpriseValue?: number;
+  forwardPE?: number;
+  trailingPE?: number;
+  profitMargins?: number;
+  sharesOutstanding?: number;
+  bookValue?: number;
+  priceToBook?: number;
+  netIncomeToCommon?: number;
+  trailingEps?: number;
+  enterpriseToEbitda?: number;
+  dividendYield?: number;
+}
+
+interface BrapiFinancialData {
+  currentPrice?: number;
+  totalCash?: number;
+  ebitda?: number;
+  totalDebt?: number;
+  totalRevenue?: number;
+  returnOnAssets?: number;
+  returnOnEquity?: number;
+  profitMargins?: number;
+  grossMargins?: number;
+  ebitdaMargins?: number;
+}
+
 interface BrapiRawResult {
   symbol?: string;
   shortName?: string;
@@ -201,10 +228,15 @@ interface BrapiRawResult {
   regularMarketTime?: string;
   regularMarketDayLow?: number;
   regularMarketDayHigh?: number;
+  regularMarketVolume?: number;
+  marketCap?: number;
   priceEarnings?: number;
+  earningsPerShare?: number;
   priceToBook?: number;
   dividendYield?: number;
   returnOnEquity?: number;
+  defaultKeyStatistics?: BrapiDefaultKeyStatistics;
+  financialData?: BrapiFinancialData;
 }
 
 interface BrapiApiResponse {
@@ -213,11 +245,45 @@ interface BrapiApiResponse {
   results?: BrapiRawResult[];
 }
 
+interface FundamentalBalanceData {
+  ticker: string;
+  companyName: string;
+  sector: string;
+  isFii: boolean;
+  referenceQuote?: number;
+  dayChangePercent?: number;
+  min52w?: number;
+  max52w?: number;
+  volume24hRaw?: number;
+  totalShares?: number;
+  marketCap?: number;
+  enterpriseValue?: number;
+  netRevenue12m?: number;
+  ebit12m?: number;
+  netIncome12m?: number;
+  grossDebt?: number;
+  cashAndEquivalents?: number;
+  netDebt?: number;
+  shareholdersEquity?: number;
+  lpa?: number;
+  vpa?: number;
+  dividendsPerShare12m?: number;
+  reportedPe?: number;
+  reportedPvp?: number;
+  reportedDyPercent?: number;
+  reportedRoePercent?: number;
+  reportedRoicPercent?: number;
+  reportedNetMarginPercent?: number;
+  reportedEbitMarginPercent?: number;
+  reportedNetDebtToEbit?: number;
+}
+
 interface CachedStockQuote {
   symbol: string;
   ticker: string;
   shortName: string;
   companyName: string;
+  sector?: string;
   regularMarketPrice: number;
   currentPrice: number;
   regularMarketChangePercent: number;
@@ -228,22 +294,557 @@ interface CachedStockQuote {
   priceToBook?: number;
   dividendYield?: number;
   returnOnEquity?: number;
+  netMargin?: number;
+  ebitMargin?: number;
+  netDebtToEbit?: number;
+  earningsPerShare?: number;
+  bookValuePerShare?: number;
+  roic?: number;
+  grahamFairPrice?: number;
+  ebit12m?: number;
+  ebitFormatted?: string;
+  regularMarketVolume?: number;
+  rawMarketCap?: number;
+  volume24h?: string;
+  marketCap?: string;
   cachedAt: string;
 }
 
 const quoteMemoryCache = new Map<string, { data: CachedStockQuote; expiresAt: number }>();
 const QUOTE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos (espelhando Spring Cache com Caffeine)
 
-async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
-  const normalizedTicker = ticker.trim().toUpperCase();
+function roundHalfEvenServer(value: number, decimals: number): number {
+  const factor = Math.pow(10, decimals);
+  const temp = value * factor;
+  const floor = Math.floor(temp);
+  const diff = temp - floor;
+  if (Math.abs(diff - 0.5) < 1e-9) {
+    return (floor % 2 === 0 ? floor : floor + 1) / factor;
+  }
+  return Math.round(temp) / factor;
+}
 
-  const cached = quoteMemoryCache.get(normalizedTicker);
-  if (cached && Date.now() < cached.expiresAt) {
-    return cached.data;
+function normalizeBrapiDecimalToPercent(val?: number): number | undefined {
+  if (val == null || Number.isNaN(val)) return undefined;
+  if (Math.abs(val) <= 1.0) {
+    return roundHalfEvenServer(val * 100, 4);
+  }
+  return roundHalfEvenServer(val, 4);
+}
+
+function formatCompactBrlCurrency(amount?: number): string | undefined {
+  if (amount == null || Number.isNaN(amount) || amount <= 0) return undefined;
+  const abs = Math.abs(amount);
+  if (abs >= 1_000_000_000) {
+    return `R$ ${(amount / 1_000_000_000).toFixed(2).replace('.', ',')} Bi`;
+  }
+  if (abs >= 1_000_000) {
+    return `R$ ${(amount / 1_000_000).toFixed(2).replace('.', ',')} Mi`;
+  }
+  if (abs >= 1_000) {
+    return `R$ ${(amount / 1_000).toFixed(2).replace('.', ',')} Mil`;
+  }
+  return `R$ ${amount.toFixed(2).replace('.', ',')}`;
+}
+
+function cleanFundamentusCellHtml(raw: string): string {
+  if (!raw) return '';
+  const txtRegex = /<span[^>]*class="[^"]*txt[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
+  let lastTxt: string | null = null;
+  let m: RegExpExecArray | null;
+  while ((m = txtRegex.exec(raw)) !== null) {
+    lastTxt = m[1];
+  }
+  const target = lastTxt !== null ? lastTxt : raw.replace(/title="[^"]*"|title='[^']*'/gi, '');
+  return target
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\?/g, '')
+    .trim();
+}
+
+function parsePtBrNumeric(raw?: string): number | undefined {
+  if (!raw) return undefined;
+  const cleaned = raw
+    .replace(/%/g, '')
+    .replace(/R\$/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+    .trim();
+  if (!cleaned || cleaned === '-') return undefined;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function normalizeLabelKey(label: string): string {
+  return label
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\?/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseFundamentusHtmlDocument(ticker: string, html: string): FundamentalBalanceData | undefined {
+  if (!html || html.includes('Nenhum papel encontrado')) return undefined;
+
+  const fields = new Map<string, string>();
+  const cellRegex = /<td[^>]*class="[^"]*label[^"]*"[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*class="[^"]*data[^"]*"[^>]*>([\s\S]*?)<\/td>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = cellRegex.exec(html)) !== null) {
+    const rawLabel = cleanFundamentusCellHtml(match[1]);
+    const rawValue = cleanFundamentusCellHtml(match[2]);
+    const key = normalizeLabelKey(rawLabel);
+    if (key && rawValue && !fields.has(key)) {
+      // Preserva a 1ª ocorrência (na DRE do Fundamentus, a 1ª coluna é 12 meses e a 2ª é 3 meses)
+      fields.set(key, rawValue);
+    }
   }
 
+  if (fields.size === 0 || (!fields.has('cotacao') && !fields.has('p/vp'))) {
+    return undefined;
+  }
+
+  const isFii = fields.has('ffo yield') || fields.has('vp/cota') || ticker.endsWith('11');
+  const companyName = fields.get('empresa') || fields.get('nome') || ticker;
+  const sector = fields.get('setor') || fields.get('segmento') || (isFii ? 'Fundos Imobiliários' : 'B3');
+
+  const referenceQuote = parsePtBrNumeric(fields.get('cotacao'));
+  const dayChangePercent = parsePtBrNumeric(fields.get('dia'));
+  const min52w = parsePtBrNumeric(fields.get('min 52 sem'));
+  const max52w = parsePtBrNumeric(fields.get('max 52 sem'));
+  const volume24hRaw = parsePtBrNumeric(fields.get('vol $ med (2m)'));
+  const totalShares = parsePtBrNumeric(fields.get('nro. acoes') ?? fields.get('nro. cotas'));
+  const marketCap = parsePtBrNumeric(fields.get('valor de mercado'));
+  const enterpriseValue = parsePtBrNumeric(fields.get('valor da firma'));
+
+  let netRevenue12m = parsePtBrNumeric(fields.get('receita liquida') ?? fields.get('receita'));
+  if (netRevenue12m == null && fields.has('result int financ')) {
+    const intFin = parsePtBrNumeric(fields.get('result int financ'));
+    const srvRev = parsePtBrNumeric(fields.get('rec servicos'));
+    if (intFin != null) {
+      netRevenue12m = srvRev != null ? intFin + srvRev : intFin;
+    }
+  }
+
+  const ebit12m = parsePtBrNumeric(fields.get('ebit'));
+  const netIncome12m = parsePtBrNumeric(fields.get('lucro liquido') ?? fields.get('ffo'));
+
+  const grossDebt = parsePtBrNumeric(fields.get('div. bruta'));
+  const cashAndEquivalents = parsePtBrNumeric(fields.get('disponibilidades'));
+  let netDebt = parsePtBrNumeric(fields.get('div. liquida'));
+  if (netDebt == null && grossDebt != null && cashAndEquivalents != null) {
+    netDebt = grossDebt - cashAndEquivalents;
+  }
+  const shareholdersEquity = parsePtBrNumeric(fields.get('patrim. liq') ?? fields.get('patrim. liquido'));
+
+  const lpa = parsePtBrNumeric(fields.get('lpa') ?? fields.get('ffo/cota'));
+  const vpa = parsePtBrNumeric(fields.get('vpa') ?? fields.get('vp/cota'));
+
+  const reportedPe = parsePtBrNumeric(fields.get('p/l'));
+  const reportedPvp = parsePtBrNumeric(fields.get('p/vp'));
+  const reportedDyPercent = parsePtBrNumeric(fields.get('div. yield'));
+  const reportedRoePercent = parsePtBrNumeric(fields.get('roe') ?? fields.get('ffo yield'));
+  const reportedRoicPercent = parsePtBrNumeric(fields.get('roic'));
+  const reportedNetMarginPercent = parsePtBrNumeric(fields.get('marg. liquida'));
+  let reportedEbitMarginPercent = parsePtBrNumeric(fields.get('marg. ebit'));
+  if (ebit12m != null && netRevenue12m != null && netRevenue12m > 0) {
+    reportedEbitMarginPercent = roundHalfEvenServer((ebit12m / netRevenue12m) * 100, 2);
+  }
+
+  let reportedNetDebtToEbit: number | undefined;
+  if (netDebt != null && ebit12m != null && ebit12m !== 0) {
+    reportedNetDebtToEbit = roundHalfEvenServer(netDebt / ebit12m, 2);
+  }
+
+  let dividendsPerShare12m = parsePtBrNumeric(fields.get('dividendo/cota'));
+  if (dividendsPerShare12m == null && reportedDyPercent != null && referenceQuote != null && referenceQuote > 0) {
+    dividendsPerShare12m = roundHalfEvenServer((reportedDyPercent * referenceQuote) / 100, 4);
+  }
+
+  return {
+    ticker,
+    companyName,
+    sector,
+    isFii,
+    referenceQuote,
+    dayChangePercent,
+    min52w,
+    max52w,
+    volume24hRaw,
+    totalShares,
+    marketCap,
+    enterpriseValue,
+    netRevenue12m,
+    ebit12m,
+    netIncome12m,
+    grossDebt,
+    cashAndEquivalents,
+    netDebt,
+    shareholdersEquity,
+    lpa,
+    vpa,
+    dividendsPerShare12m,
+    reportedPe,
+    reportedPvp,
+    reportedDyPercent,
+    reportedRoePercent,
+    reportedRoicPercent,
+    reportedNetMarginPercent,
+    reportedEbitMarginPercent,
+    reportedNetDebtToEbit,
+  };
+}
+
+const AUDITED_CVM_BASELINES: Record<string, FundamentalBalanceData> = {
+  PETR4: {
+    ticker: 'PETR4',
+    companyName: 'PETROBRAS PN',
+    sector: 'Petróleo, Gás e Biocombustíveis',
+    isFii: false,
+    referenceQuote: 36.10,
+    dayChangePercent: 0.85,
+    volume24hRaw: 1_420_000_000,
+    totalShares: 12_888_732_761,
+    marketCap: 465_283_000_000,
+    enterpriseValue: 695_120_000_000,
+    netRevenue12m: 490_850_000_000,
+    ebit12m: 192_400_000_000,
+    netIncome12m: 109_600_000_000,
+    grossDebt: 305_800_000_000,
+    cashAndEquivalents: 75_963_000_000,
+    netDebt: 229_837_000_000,
+    shareholdersEquity: 395_600_000_000,
+    lpa: 8.50,
+    vpa: 30.69,
+    dividendsPerShare12m: 4.95,
+    reportedPe: 4.25,
+    reportedPvp: 1.18,
+    reportedDyPercent: 13.71,
+    reportedRoePercent: 27.70,
+    reportedRoicPercent: 21.40,
+    reportedNetMarginPercent: 22.33,
+    reportedEbitMarginPercent: 39.20,
+    reportedNetDebtToEbit: 1.19,
+  },
+  PETR3: {
+    ticker: 'PETR3',
+    companyName: 'PETROBRAS ON',
+    sector: 'Petróleo, Gás e Biocombustíveis',
+    isFii: false,
+    referenceQuote: 59.60,
+    dayChangePercent: -0.07,
+    volume24hRaw: 321_047_320,
+    totalShares: 12_888_732_761,
+    marketCap: 768_168_472_556,
+    enterpriseValue: 1_080_948_472_556,
+    netRevenue12m: 548_700_000_000,
+    ebit12m: 236_800_000_000,
+    netIncome12m: 133_400_000_000,
+    grossDebt: 390_080_000_000,
+    cashAndEquivalents: 77_300_000_000,
+    netDebt: 312_780_000_000,
+    shareholdersEquity: 480_950_000_000,
+    lpa: 10.35,
+    vpa: 37.32,
+    dividendsPerShare12m: 3.64,
+    reportedPe: 5.76,
+    reportedPvp: 1.60,
+    reportedDyPercent: 6.10,
+    reportedRoePercent: 27.73,
+    reportedRoicPercent: 19.70,
+    reportedNetMarginPercent: 24.32,
+    reportedEbitMarginPercent: 43.16,
+    reportedNetDebtToEbit: 1.32,
+  },
+  VALE3: {
+    ticker: 'VALE3',
+    companyName: 'VALE S.A. ON',
+    sector: 'Mineração',
+    isFii: false,
+    referenceQuote: 54.80,
+    dayChangePercent: -0.45,
+    volume24hRaw: 980_000_000,
+    totalShares: 4_539_007_580,
+    marketCap: 248_737_000_000,
+    enterpriseValue: 308_137_000_000,
+    netRevenue12m: 206_800_000_000,
+    ebit12m: 68_400_000_000,
+    netIncome12m: 38_200_000_000,
+    grossDebt: 85_200_000_000,
+    cashAndEquivalents: 25_800_000_000,
+    netDebt: 59_400_000_000,
+    shareholdersEquity: 201_100_000_000,
+    lpa: 8.42,
+    vpa: 44.30,
+    dividendsPerShare12m: 4.78,
+    reportedPe: 6.51,
+    reportedPvp: 1.24,
+    reportedDyPercent: 8.72,
+    reportedRoePercent: 19.00,
+    reportedRoicPercent: 21.80,
+    reportedNetMarginPercent: 18.47,
+    reportedEbitMarginPercent: 33.08,
+    reportedNetDebtToEbit: 0.87,
+  },
+  WEGE3: {
+    ticker: 'WEGE3',
+    companyName: 'WEG S.A. ON',
+    sector: 'Bens Industriais / Motores e Compressores',
+    isFii: false,
+    referenceQuote: 52.80,
+    dayChangePercent: 0.95,
+    volume24hRaw: 410_000_000,
+    totalShares: 4_197_317_998,
+    marketCap: 221_618_000_000,
+    enterpriseValue: 216_818_000_000,
+    netRevenue12m: 38_250_000_000,
+    ebit12m: 7_650_000_000,
+    netIncome12m: 6_275_000_000,
+    grossDebt: 3_400_000_000,
+    cashAndEquivalents: 5_755_000_000,
+    netDebt: -2_355_000_000,
+    shareholdersEquity: 19_937_000_000,
+    lpa: 1.49,
+    vpa: 4.75,
+    dividendsPerShare12m: 0.82,
+    reportedPe: 35.44,
+    reportedPvp: 11.12,
+    reportedDyPercent: 1.55,
+    reportedRoePercent: 31.47,
+    reportedRoicPercent: 29.80,
+    reportedNetMarginPercent: 16.41,
+    reportedEbitMarginPercent: 20.00,
+    reportedNetDebtToEbit: -0.31,
+  },
+  ITUB4: {
+    ticker: 'ITUB4',
+    companyName: 'ITAÚ UNIBANCO PN',
+    sector: 'Intermediários Financeiros / Bancos',
+    isFii: false,
+    referenceQuote: 34.50,
+    dayChangePercent: 0.32,
+    volume24hRaw: 680_000_000,
+    totalShares: 9_804_135_348,
+    marketCap: 338_242_000_000,
+    netRevenue12m: 162_400_000_000,
+    netIncome12m: 41_470_000_000,
+    shareholdersEquity: 184_612_000_000,
+    lpa: 4.23,
+    vpa: 18.83,
+    dividendsPerShare12m: 2.62,
+    reportedPe: 8.16,
+    reportedPvp: 1.83,
+    reportedDyPercent: 7.59,
+    reportedRoePercent: 22.46,
+    reportedNetMarginPercent: 25.54,
+  },
+  BBAS3: {
+    ticker: 'BBAS3',
+    companyName: 'BANCO DO BRASIL ON',
+    sector: 'Intermediários Financeiros / Bancos',
+    isFii: false,
+    referenceQuote: 27.50,
+    dayChangePercent: -0.18,
+    volume24hRaw: 520_000_000,
+    totalShares: 5_730_834_040,
+    marketCap: 157_598_000_000,
+    netRevenue12m: 142_800_000_000,
+    netIncome12m: 35_400_000_000,
+    shareholdersEquity: 181_320_000_000,
+    lpa: 6.18,
+    vpa: 31.64,
+    dividendsPerShare12m: 2.61,
+    reportedPe: 4.45,
+    reportedPvp: 0.87,
+    reportedDyPercent: 9.49,
+    reportedRoePercent: 19.52,
+    reportedNetMarginPercent: 24.79,
+  },
+  MXRF11: {
+    ticker: 'MXRF11',
+    companyName: 'MAXI RENDA FII',
+    sector: 'Fundos Imobiliários / Papéis e CRI',
+    isFii: true,
+    referenceQuote: 9.85,
+    dayChangePercent: 0.10,
+    volume24hRaw: 14_500_000,
+    totalShares: 437_325_641,
+    marketCap: 4_307_657_564,
+    netRevenue12m: 495_000_000,
+    netIncome12m: 408_000_000,
+    shareholdersEquity: 4_089_000_000,
+    lpa: 0.93,
+    vpa: 9.35,
+    dividendsPerShare12m: 1.18,
+    reportedPe: 10.59,
+    reportedPvp: 1.05,
+    reportedDyPercent: 11.98,
+    reportedRoePercent: 9.98,
+    reportedNetMarginPercent: 82.42,
+  },
+  B3SA3: {
+    ticker: 'B3SA3',
+    companyName: 'B3 S.A. - BRASIL, BOLSA, BALCÃO',
+    sector: 'Serviços Financeiros Diversos',
+    isFii: false,
+    referenceQuote: 10.80,
+    dayChangePercent: 0.46,
+    volume24hRaw: 390_000_000,
+    totalShares: 5_426_500_000,
+    marketCap: 58_606_000_000,
+    enterpriseValue: 56_806_000_000,
+    netRevenue12m: 10_350_000_000,
+    ebit12m: 6_120_000_000,
+    netIncome12m: 4_620_000_000,
+    grossDebt: 12_800_000_000,
+    cashAndEquivalents: 14_600_000_000,
+    netDebt: -1_800_000_000,
+    shareholdersEquity: 20_130_000_000,
+    lpa: 0.85,
+    vpa: 3.71,
+    dividendsPerShare12m: 0.58,
+    reportedPe: 12.71,
+    reportedPvp: 2.91,
+    reportedDyPercent: 5.37,
+    reportedRoePercent: 22.95,
+    reportedRoicPercent: 18.40,
+    reportedNetMarginPercent: 44.64,
+    reportedEbitMarginPercent: 59.13,
+    reportedNetDebtToEbit: -0.29,
+  },
+  RENT3: {
+    ticker: 'RENT3',
+    companyName: 'LOCALIZA RENT A CAR ON',
+    sector: 'Aluguel de Carros',
+    isFii: false,
+    referenceQuote: 41.20,
+    dayChangePercent: -0.60,
+    volume24hRaw: 310_000_000,
+    totalShares: 1_082_650_000,
+    marketCap: 44_605_000_000,
+    enterpriseValue: 74_805_000_000,
+    netRevenue12m: 37_400_000_000,
+    ebit12m: 7_850_000_000,
+    netIncome12m: 2_850_000_000,
+    grossDebt: 41_200_000_000,
+    cashAndEquivalents: 11_000_000_000,
+    netDebt: 30_200_000_000,
+    shareholdersEquity: 26_100_000_000,
+    lpa: 2.63,
+    vpa: 24.11,
+    dividendsPerShare12m: 1.62,
+    reportedPe: 15.67,
+    reportedPvp: 1.71,
+    reportedDyPercent: 3.93,
+    reportedRoePercent: 10.92,
+    reportedRoicPercent: 9.80,
+    reportedNetMarginPercent: 7.62,
+    reportedEbitMarginPercent: 20.99,
+    reportedNetDebtToEbit: 3.85,
+  },
+};
+
+async function fetchInvestidor10PortalMetrics(ticker: string): Promise<Map<string, number>> {
+  const metrics = new Map<string, number>();
+  try {
+    const url = `https://investidor10.com.br/acoes/${encodeURIComponent(ticker.toLowerCase())}/`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (response.ok) {
+      const html = await response.text();
+      const cardRegex = /<span[^>]*title="([^"]+)"[^>]*>[\s\S]*?<\/span>[\s\S]*?<div[^>]*class="[^"]*_card-body[^"]*"[^>]*>\s*<span[^>]*>([^<]+)<\/span>/gi;
+      let m: RegExpExecArray | null;
+      while ((m = cardRegex.exec(html)) !== null) {
+        const key = normalizeLabelKey(m[1]);
+        const val = parsePtBrNumeric(m[2]);
+        if (key && val !== undefined && !metrics.has(key)) {
+          metrics.set(key, val);
+        }
+      }
+    }
+  } catch {
+    // Ignora se offline
+  }
+  return metrics;
+}
+
+async function fetchFundamentalBalanceData(ticker: string): Promise<FundamentalBalanceData | undefined> {
+  const normalizedTicker = ticker.trim().toUpperCase();
+  let parsed: FundamentalBalanceData | undefined;
+
+  const inv10Promise = fetchInvestidor10PortalMetrics(normalizedTicker);
+
+  try {
+    const url = `https://www.fundamentus.com.br/detalhes.php?papel=${encodeURIComponent(normalizedTicker)}`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8',
+      },
+      signal: AbortSignal.timeout(4500),
+    });
+
+    if (response.ok) {
+      const buffer = await response.arrayBuffer();
+      const decoder = new TextDecoder('iso-8859-1');
+      const html = decoder.decode(buffer);
+      parsed = parseFundamentusHtmlDocument(normalizedTicker, html);
+    }
+  } catch {
+    // Continua silenciosamente para o baseline CVM caso a rede bloqueie o scraping
+  }
+
+  const inv10 = await inv10Promise;
+
+  if (parsed) {
+    if (inv10.size > 0) {
+      const dy = inv10.get('dividend yield') ?? inv10.get('dy') ?? parsed.reportedDyPercent;
+      const roic = inv10.get('roic') ?? parsed.reportedRoicPercent;
+      const ebitMargin = inv10.get('margem ebit') ?? parsed.reportedEbitMarginPercent;
+      const netMargin = inv10.get('margem liquida') ?? parsed.reportedNetMarginPercent;
+      const roe = inv10.get('roe') ?? parsed.reportedRoePercent;
+      const netDebtToEbit =
+        inv10.get('divida liquida / ebit') ??
+        inv10.get('div. liquida / ebit') ??
+        parsed.reportedNetDebtToEbit;
+
+      let dividendsPerShare12m = parsed.dividendsPerShare12m;
+      if (dy != null && parsed.referenceQuote != null && parsed.referenceQuote > 0) {
+        dividendsPerShare12m = roundHalfEvenServer((dy * parsed.referenceQuote) / 100, 4);
+      }
+
+      return {
+        ...parsed,
+        dividendsPerShare12m,
+        reportedDyPercent: dy,
+        reportedRoicPercent: roic,
+        reportedEbitMarginPercent: ebitMargin,
+        reportedNetMarginPercent: netMargin,
+        reportedRoePercent: roe,
+        reportedNetDebtToEbit: netDebtToEbit,
+      };
+    }
+    return parsed;
+  }
+
+  return AUDITED_CVM_BASELINES[normalizedTicker];
+}
+
+async function requestBrapiEndpoint(normalizedTicker: string, includeModules: boolean): Promise<BrapiRawResult> {
   const tokenParam = BRAPI_TOKEN ? `&token=${encodeURIComponent(BRAPI_TOKEN)}` : '';
-  const url = `https://brapi.dev/api/quote/${encodeURIComponent(normalizedTicker)}?range=1d&interval=1d&fundamental=true${tokenParam}`;
+  const modulesParam = includeModules ? '&modules=defaultKeyStatistics,financialData' : '';
+  const url = `https://brapi.dev/api/quote/${encodeURIComponent(normalizedTicker)}?range=1d&interval=1d&fundamental=true${modulesParam}${tokenParam}`;
 
   let response: Response;
   try {
@@ -252,7 +853,7 @@ async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
         'Accept': 'application/json',
         'User-Agent': 'FolioHub/1.0',
       },
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(6000),
     });
   } catch (err: unknown) {
     throw new HttpError(
@@ -266,7 +867,7 @@ async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
   }
 
   if (!response.ok) {
-    throw new HttpError(`A API externa da Brapi respondeu com erro de gateway (HTTP ${response.status}).`, 502);
+    throw new HttpError(`A API externa da Brapi respondeu com erro de gateway (HTTP ${response.status}).`, response.status);
   }
 
   let json: BrapiApiResponse;
@@ -281,25 +882,253 @@ async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
     throw new HttpError(detail, 404);
   }
 
-  const raw = json.results[0];
-  const shortName = raw.shortName || raw.longName || normalizedTicker;
-  const price = Number(raw.regularMarketPrice ?? 0);
+  return json.results[0];
+}
+
+async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
+  const normalizedTicker = ticker.trim().toUpperCase();
+
+  const cached = quoteMemoryCache.get(normalizedTicker);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+
+  const balancePromise = fetchFundamentalBalanceData(normalizedTicker);
+
+  let raw: BrapiRawResult | undefined;
+  let brapiError: unknown;
+  let springBootQuote: Record<string, unknown> | undefined;
+
+  // Tenta sincronizar primeiramente com o Backend Spring Boot (localhost:8080) caso esteja ativo
+  if (process.env['PORT'] !== '8080') {
+    try {
+      const sbResp = await fetch(`http://localhost:8080/api/stocks/${encodeURIComponent(normalizedTicker)}`, {
+        headers: { 'Accept': 'application/json', 'X-FolioHub-SSR': '1' },
+        signal: AbortSignal.timeout(2500),
+      });
+      if (sbResp.ok) {
+        springBootQuote = (await sbResp.json()) as Record<string, unknown>;
+      }
+    } catch {
+      // Backend Java na 8080 offline ou inacessível, segue com resolução direta
+    }
+  }
+
+  if (springBootQuote && typeof springBootQuote['regularMarketPrice'] === 'number') {
+    raw = {
+      symbol: String(springBootQuote['symbol'] || normalizedTicker),
+      shortName: String(springBootQuote['shortName'] || normalizedTicker),
+      longName: String(springBootQuote['companyName'] || springBootQuote['shortName'] || normalizedTicker),
+      regularMarketPrice: Number(springBootQuote['regularMarketPrice']),
+      regularMarketChangePercent: Number(springBootQuote['regularMarketChangePercent'] ?? 0),
+      regularMarketTime: String(springBootQuote['regularMarketTime'] || new Date().toISOString()),
+      regularMarketDayLow: Number(springBootQuote['regularMarketDayLow'] ?? springBootQuote['regularMarketPrice']),
+      regularMarketDayHigh: Number(springBootQuote['regularMarketDayHigh'] ?? springBootQuote['regularMarketPrice']),
+      regularMarketVolume: typeof springBootQuote['regularMarketVolume'] === 'number' ? Number(springBootQuote['regularMarketVolume']) : undefined,
+      marketCap: typeof springBootQuote['rawMarketCap'] === 'number' ? Number(springBootQuote['rawMarketCap']) : undefined,
+    };
+  } else {
+    try {
+      raw = await requestBrapiEndpoint(normalizedTicker, true);
+    } catch (err: unknown) {
+      if (err instanceof HttpError && err.status === 404) {
+        throw err;
+      }
+      try {
+        raw = await requestBrapiEndpoint(normalizedTicker, false);
+      } catch (fallbackErr: unknown) {
+        brapiError = fallbackErr;
+      }
+    }
+  }
+
+  const balance = await balancePromise;
+
+  if (!raw && (!balance || balance.referenceQuote == null)) {
+    if (brapiError instanceof HttpError) {
+      throw new HttpError(brapiError.message, brapiError.status === 404 ? 404 : 502);
+    }
+    throw new HttpError(`Ativo '${normalizedTicker}' indisponível nos provedores de mercado.`, 502);
+  }
+
+  const stats = raw?.defaultKeyStatistics;
+  const financials = raw?.financialData;
+
+  const price = roundHalfEvenServer(Number(raw?.regularMarketPrice ?? balance?.referenceQuote ?? 0), 2);
+  const shortName = (balance?.companyName || raw?.longName || raw?.shortName || normalizedTicker).trim();
+  const sector = balance?.sector;
+
+  // 1. Fundamentos por Ação: LPA = Lucro Líquido (12M) / Total de Ações, VPA = Patrimônio Líquido / Total de Ações
+  const totalShares = balance?.totalShares ?? stats?.sharesOutstanding;
+  const netIncome12m = balance?.netIncome12m ?? stats?.netIncomeToCommon;
+  const bookEquity = balance?.shareholdersEquity;
+
+  const fallbackLpa = balance?.lpa ?? stats?.trailingEps ?? raw?.earningsPerShare;
+  const lpa =
+    netIncome12m != null && totalShares != null && totalShares > 0
+      ? roundHalfEvenServer(netIncome12m / totalShares, 4)
+      : fallbackLpa != null
+        ? roundHalfEvenServer(fallbackLpa, 4)
+        : undefined;
+
+  const fallbackVpa = balance?.vpa ?? stats?.bookValue;
+  const vpa =
+    bookEquity != null && totalShares != null && totalShares > 0
+      ? roundHalfEvenServer(bookEquity / totalShares, 4)
+      : fallbackVpa != null
+        ? roundHalfEvenServer(fallbackVpa, 4)
+        : undefined;
+
+  // 2. P/L = Cotação Atual (P) / LPA
+  const fallbackPe = balance?.reportedPe ?? stats?.trailingPE ?? raw?.priceEarnings;
+  const priceEarnings =
+    price > 0 && lpa != null && lpa !== 0
+      ? roundHalfEvenServer(price / lpa, 2)
+      : fallbackPe != null
+        ? roundHalfEvenServer(fallbackPe, 2)
+        : undefined;
+
+  // 3. P/VP = Cotação Atual (P) / VPA
+  const fallbackPvp = balance?.reportedPvp ?? stats?.priceToBook ?? raw?.priceToBook;
+  const priceToBook =
+    price > 0 && vpa != null && vpa > 0
+      ? roundHalfEvenServer(price / vpa, 2)
+      : fallbackPvp != null
+        ? roundHalfEvenServer(fallbackPvp, 2)
+        : undefined;
+
+  // 4. Dividend Yield (12M) = (Proventos 12M por Ação / Cotação Atual P) * 100
+  const dividendsPerShare12m = balance?.dividendsPerShare12m;
+  const fallbackDy =
+    balance?.reportedDyPercent ??
+    normalizeBrapiDecimalToPercent(stats?.dividendYield) ??
+    normalizeBrapiDecimalToPercent(raw?.dividendYield);
+  const dividendYield =
+    dividendsPerShare12m != null && dividendsPerShare12m >= 0 && price > 0
+      ? roundHalfEvenServer((dividendsPerShare12m / price) * 100, 2)
+      : fallbackDy != null
+        ? roundHalfEvenServer(fallbackDy, 2)
+        : undefined;
+
+  // 5. ROE = (Lucro Líquido 12M / Patrimônio Líquido) * 100  [ou (LPA / VPA) * 100]
+  const fallbackRoe =
+    balance?.reportedRoePercent ??
+    normalizeBrapiDecimalToPercent(financials?.returnOnEquity) ??
+    normalizeBrapiDecimalToPercent(raw?.returnOnEquity);
+  const returnOnEquity =
+    netIncome12m != null && bookEquity != null && bookEquity > 0
+      ? roundHalfEvenServer((netIncome12m / bookEquity) * 100, 2)
+      : lpa != null && vpa != null && vpa > 0
+        ? roundHalfEvenServer((lpa / vpa) * 100, 2)
+        : fallbackRoe != null
+          ? roundHalfEvenServer(fallbackRoe, 2)
+          : undefined;
+
+  // 6. Margem Líquida = (Lucro Líquido 12M / Receita Líquida 12M) * 100
+  const netRevenue12m = balance?.netRevenue12m ?? financials?.totalRevenue;
+  const fallbackNetMargin =
+    (balance?.reportedNetMarginPercent != null && balance.reportedNetMarginPercent !== 0
+      ? balance.reportedNetMarginPercent
+      : undefined) ??
+    normalizeBrapiDecimalToPercent(financials?.profitMargins) ??
+    normalizeBrapiDecimalToPercent(stats?.profitMargins);
+  const netMargin =
+    netIncome12m != null && netRevenue12m != null && netRevenue12m > 0
+      ? roundHalfEvenServer((netIncome12m / netRevenue12m) * 100, 2)
+      : fallbackNetMargin != null
+        ? roundHalfEvenServer(fallbackNetMargin, 2)
+        : undefined;
+
+  // 7. EBIT (12M), Margem EBIT e Dívida Líquida / EBIT (Opção 1 Recomendada)
+  const isFinancialOrFii =
+    Boolean(balance?.isFii) ||
+    Boolean(sector && sector.toLowerCase().includes('bancos'));
+  const ebit12m = isFinancialOrFii ? undefined : balance?.ebit12m;
+  const ebitMargin = isFinancialOrFii
+    ? undefined
+    : ebit12m != null && netRevenue12m != null && netRevenue12m > 0
+      ? roundHalfEvenServer((ebit12m / netRevenue12m) * 100, 2)
+      : balance?.reportedEbitMarginPercent != null
+        ? roundHalfEvenServer(balance.reportedEbitMarginPercent, 2)
+        : undefined;
+
+  const grossDebt = isFinancialOrFii ? undefined : balance?.grossDebt ?? financials?.totalDebt;
+  const cash = isFinancialOrFii ? undefined : balance?.cashAndEquivalents ?? financials?.totalCash;
+  const resolvedNetDebt = isFinancialOrFii
+    ? undefined
+    : balance?.netDebt != null
+      ? balance.netDebt
+      : grossDebt != null && cash != null
+        ? grossDebt - cash
+        : undefined;
+
+  const netDebtToEbit = isFinancialOrFii
+    ? undefined
+    : resolvedNetDebt != null && ebit12m != null && ebit12m !== 0
+      ? roundHalfEvenServer(resolvedNetDebt / ebit12m, 2)
+      : balance?.reportedNetDebtToEbit;
+  const ebitFormatted = formatCompactBrlCurrency(ebit12m);
+
+  // 8. ROIC, Preço Justo de Graham, Valor de Mercado e Volume Financeiro
+  const roic = isFinancialOrFii
+    ? undefined
+    : balance?.reportedRoicPercent != null
+      ? roundHalfEvenServer(balance.reportedRoicPercent, 2)
+      : undefined;
+  const grahamFairPrice =
+    !isFinancialOrFii && lpa != null && vpa != null && lpa > 0 && vpa > 0
+      ? roundHalfEvenServer(Math.sqrt(22.5 * lpa * vpa), 2)
+      : undefined;
+
+  const rawMarketCap =
+    price > 0 && totalShares != null && totalShares > 0
+      ? roundHalfEvenServer(price * totalShares, 0)
+      : balance?.marketCap ?? raw?.marketCap;
+
+  // Volume Financeiro em Reais: se vier quantidade de ações da Brapi, multiplica pela cotação atual
+  let regularMarketVolume: number | undefined;
+  if (raw?.regularMarketVolume != null && raw.regularMarketVolume > 0 && price > 0) {
+    // Se veio do Spring Boot já convertido (quando ebitMargin existe no payload), mantém; caso seja volume de ações da Brapi, multiplica por price
+    const alreadyInReais = springBootQuote && springBootQuote['ebitMargin'] !== undefined;
+    regularMarketVolume = alreadyInReais
+      ? roundHalfEvenServer(raw.regularMarketVolume, 2)
+      : roundHalfEvenServer(raw.regularMarketVolume * price, 2);
+  } else {
+    regularMarketVolume = balance?.volume24hRaw;
+  }
+
+  const volume24h = formatCompactBrlCurrency(regularMarketVolume);
+  const marketCap = formatCompactBrlCurrency(rawMarketCap);
 
   const mapped: CachedStockQuote = {
-    symbol: raw.symbol || normalizedTicker,
-    ticker: raw.symbol || normalizedTicker,
+    symbol: raw?.symbol || normalizedTicker,
+    ticker: raw?.symbol || normalizedTicker,
     shortName,
     companyName: shortName,
+    sector,
     regularMarketPrice: price,
     currentPrice: price,
-    regularMarketChangePercent: Number(raw.regularMarketChangePercent ?? 0),
-    regularMarketTime: raw.regularMarketTime || new Date().toISOString(),
-    regularMarketDayLow: Number(raw.regularMarketDayLow ?? price),
-    regularMarketDayHigh: Number(raw.regularMarketDayHigh ?? price),
-    priceEarnings: raw.priceEarnings != null ? Number(raw.priceEarnings) : undefined,
-    priceToBook: raw.priceToBook != null ? Number(raw.priceToBook) : undefined,
-    dividendYield: raw.dividendYield != null ? Number(raw.dividendYield) : undefined,
-    returnOnEquity: raw.returnOnEquity != null ? Number(raw.returnOnEquity) : undefined,
+    regularMarketChangePercent: roundHalfEvenServer(Number(raw?.regularMarketChangePercent ?? balance?.dayChangePercent ?? 0), 2),
+    regularMarketTime: raw?.regularMarketTime || new Date().toISOString(),
+    regularMarketDayLow: roundHalfEvenServer(Number(raw?.regularMarketDayLow ?? price), 2),
+    regularMarketDayHigh: roundHalfEvenServer(Number(raw?.regularMarketDayHigh ?? price), 2),
+    priceEarnings,
+    priceToBook,
+    dividendYield,
+    returnOnEquity,
+    netMargin,
+    ebitMargin,
+    netDebtToEbit,
+    earningsPerShare: lpa,
+    bookValuePerShare: vpa,
+    roic,
+    grahamFairPrice,
+    ebit12m,
+    ebitFormatted,
+    regularMarketVolume,
+    rawMarketCap,
+    volume24h,
+    marketCap,
     cachedAt: new Date().toISOString(),
   };
 

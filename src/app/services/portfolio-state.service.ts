@@ -52,7 +52,7 @@ export class PortfolioStateService {
       dividendYield: 14.8,
       returnOnEquity: 24.12,
       netMargin: 22.4,
-      netDebtToEbitda: 0.85,
+      netDebtToEbit: 0.85,
     },
     VALE3: {
       ticker: 'VALE3',
@@ -66,7 +66,7 @@ export class PortfolioStateService {
       dividendYield: 9.2,
       returnOnEquity: 21.45,
       netMargin: 19.8,
-      netDebtToEbitda: 0.62,
+      netDebtToEbit: 0.62,
     },
     WEGE3: {
       ticker: 'WEGE3',
@@ -80,7 +80,7 @@ export class PortfolioStateService {
       dividendYield: 2.15,
       returnOnEquity: 34.5,
       netMargin: 17.2,
-      netDebtToEbitda: -0.15,
+      netDebtToEbit: -0.15,
     },
     ITUB4: {
       ticker: 'ITUB4',
@@ -94,8 +94,7 @@ export class PortfolioStateService {
       dividendYield: 7.45,
       returnOnEquity: 21.2,
       netMargin: 25.1,
-      netDebtToEbitda: 0.0,
-    },
+          },
     BBAS3: {
       ticker: 'BBAS3',
       companyName: 'Banco do Brasil ON',
@@ -108,8 +107,7 @@ export class PortfolioStateService {
       dividendYield: 10.15,
       returnOnEquity: 21.8,
       netMargin: 23.4,
-      netDebtToEbitda: 0.0,
-    },
+          },
     MXRF11: {
       ticker: 'MXRF11',
       companyName: 'Maxi Renda FII',
@@ -122,8 +120,7 @@ export class PortfolioStateService {
       dividendYield: 12.45,
       returnOnEquity: 9.8,
       netMargin: 88.5,
-      netDebtToEbitda: 0.0,
-    },
+          },
   });
 
   readonly isLoading = signal<boolean>(false);

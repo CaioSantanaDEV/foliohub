@@ -98,10 +98,15 @@ export interface FixedIncomePositionResponseDto {
 }
 
 export interface StockQuoteDto {
+  symbol?: string;
   ticker: string;
+  shortName?: string;
   companyName: string;
+  sector?: string;
   regularMarketPrice: number;
+  currentPrice?: number;
   regularMarketChangePercent: number;
+  regularMarketTime?: string;
   regularMarketDayLow: number;
   regularMarketDayHigh: number;
   priceEarnings?: number;
@@ -109,7 +114,16 @@ export interface StockQuoteDto {
   dividendYield?: number;
   returnOnEquity?: number;
   netMargin?: number;
-  netDebtToEbitda?: number;
+  ebitMargin?: number;
+  netDebtToEbit?: number;
+  earningsPerShare?: number;
+  bookValuePerShare?: number;
+  roic?: number;
+  ebit12m?: number;
+  ebitFormatted?: string;
+  grahamFairPrice?: number;
+  regularMarketVolume?: number;
+  rawMarketCap?: number;
   volume24h?: string;
   marketCap?: string;
   cachedAt?: string;

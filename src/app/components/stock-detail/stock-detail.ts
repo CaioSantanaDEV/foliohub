@@ -175,15 +175,15 @@ export interface IndicatorHealth {
               </span>
             </div>
             <div class="bg-slate-50 p-2.5 rounded border border-slate-100">
-              <span class="text-slate-500 font-medium block">Volume (24h)</span>
+              <span class="text-slate-500 font-medium block">Volume Financeiro</span>
               <span class="text-sm font-bold text-slate-900 tabular-nums text-right block">
-                {{ stock.volume24h || 'R$ 840 Mi' }}
+                {{ stock.volume24h || 'N/A' }}
               </span>
             </div>
             <div class="bg-slate-50 p-2.5 rounded border border-slate-100">
               <span class="text-slate-500 font-medium block">Valor de Mercado</span>
               <span class="text-sm font-bold text-slate-900 tabular-nums text-right block">
-                {{ stock.marketCap || 'R$ 210 Bi' }}
+                {{ stock.marketCap || 'N/A' }}
               </span>
             </div>
           </div>
@@ -225,17 +225,7 @@ export interface IndicatorHealth {
               </h2>
               <p class="text-xs text-slate-500">Métricas financeiras calculadas com base nos demonstrativos oficiais</p>
             </div>
-            <div class="flex items-center gap-2 text-xs">
-              <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Favorável
-              </span>
-              <span class="inline-flex items-center gap-1 text-slate-600 font-medium">
-                <span class="w-2 h-2 rounded-full bg-slate-400"></span> Neutro
-              </span>
-              <span class="inline-flex items-center gap-1 text-rose-700 font-medium">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Atenção
-              </span>
-            </div>
+            
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -249,13 +239,11 @@ export interface IndicatorHealth {
                   </div>
                   <span class="text-[11px] text-slate-500">Preço / Lucro</span>
                 </div>
-                <span [class]="plHealth().badgeClass" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border">
-                  {{ plHealth().badgeLabel }}
-                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200">Múltiplo</span>
               </div>
 
               <div class="mt-3 flex items-baseline justify-between">
-                <span [class]="plHealth().valueClass" class="text-2xl font-bold tabular-nums">
+                <span class="text-2xl font-bold text-slate-900 tabular-nums">
                   {{ stock.priceEarnings !== null && stock.priceEarnings !== undefined ? (stock.priceEarnings | number:'1.2-2':'pt-BR') : '-' }}
                 </span>
                 <span class="text-[11px] text-slate-500 text-right">
@@ -274,13 +262,11 @@ export interface IndicatorHealth {
                   </div>
                   <span class="text-[11px] text-slate-500">Preço / Valor Patrimonial</span>
                 </div>
-                <span [class]="pvpHealth().badgeClass" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border">
-                  {{ pvpHealth().badgeLabel }}
-                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200">Patrimonial</span>
               </div>
 
               <div class="mt-3 flex items-baseline justify-between">
-                <span [class]="pvpHealth().valueClass" class="text-2xl font-bold tabular-nums">
+                <span class="text-2xl font-bold text-slate-900 tabular-nums">
                   {{ stock.priceToBook !== null && stock.priceToBook !== undefined ? (stock.priceToBook | number:'1.2-2':'pt-BR') : '-' }}
                 </span>
                 <span class="text-[11px] text-slate-500 text-right">
@@ -303,13 +289,11 @@ export interface IndicatorHealth {
                   </div>
                   <span class="text-[11px] text-slate-500">Dividend Yield</span>
                 </div>
-                <span [class]="dyHealth().badgeClass" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border">
-                  {{ dyHealth().badgeLabel }}
-                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200">Proventos</span>
               </div>
 
               <div class="mt-3 flex items-baseline justify-between">
-                <span [class]="dyHealth().valueClass" class="text-2xl font-bold tabular-nums">
+                <span class="text-2xl font-bold text-slate-900 tabular-nums">
                   {{ stock.dividendYield !== null && stock.dividendYield !== undefined ? (stock.dividendYield | number:'1.2-2':'pt-BR') + '%' : '-' }}
                 </span>
                 <span class="text-[11px] text-slate-500 text-right">
@@ -328,13 +312,11 @@ export interface IndicatorHealth {
                   </div>
                   <span class="text-[11px] text-slate-500">Retorno s/ Patrimônio</span>
                 </div>
-                <span [class]="roeHealth().badgeClass" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border">
-                  {{ roeHealth().badgeLabel }}
-                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200">Rentabilidade</span>
               </div>
 
               <div class="mt-3 flex items-baseline justify-between">
-                <span [class]="roeHealth().valueClass" class="text-2xl font-bold tabular-nums">
+                <span class="text-2xl font-bold text-slate-900 tabular-nums">
                   {{ stock.returnOnEquity !== null && stock.returnOnEquity !== undefined ? (stock.returnOnEquity | number:'1.2-2':'pt-BR') + '%' : '-' }}
                 </span>
                 <span class="text-[11px] text-slate-500 text-right">
@@ -344,26 +326,40 @@ export interface IndicatorHealth {
             </div>
           </div>
 
-          <!-- Métricas Complementares: Margem Líquida & Dívida Líq./EBITDA -->
+          <!-- Métricas Complementares: Margem Líquida & Dívida Líq./EBIT -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <div class="bg-white rounded-lg border border-slate-200 p-3.5 shadow-sm flex items-center justify-between">
-              <div>
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Margem Líquida</span>
-                <span class="text-xs text-slate-500">Porcentagem de cada R$ 100 faturado que vira lucro líquido</span>
+            <div class="bg-white rounded-lg border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Margem Líquida & ROIC</span>
+                  <span class="text-xs text-slate-500">Lucro Líquido (12M) ÷ Receita Líquida (12M)</span>
+                </div>
+                <span class="text-lg font-bold text-slate-900 tabular-nums">
+                  {{ stock.netMargin !== null && stock.netMargin !== undefined ? (stock.netMargin | number:'1.2-2':'pt-BR') + '%' : 'N/A' }}
+                </span>
               </div>
-              <span class="text-lg font-bold text-slate-900 tabular-nums">
-                {{ stock.netMargin !== null && stock.netMargin !== undefined ? (stock.netMargin | number:'1.2-2':'pt-BR') + '%' : '21.50%' }}
-              </span>
+              <div class="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                <span>ROIC / Margem EBIT:</span>
+                <strong class="font-mono text-slate-700">
+                  {{ stock.roic !== null && stock.roic !== undefined ? (stock.roic | number:'1.2-2':'pt-BR') + '%' : 'Não se aplica' }}
+                </strong>
+              </div>
             </div>
 
-            <div class="bg-white rounded-lg border border-slate-200 p-3.5 shadow-sm flex items-center justify-between">
-              <div>
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dívida Líquida / EBITDA</span>
-                <span class="text-xs text-slate-500">Alavancagem e tempo necessário para quitar endividamento</span>
+            <div class="bg-white rounded-lg border border-slate-200 p-3.5 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dívida Líquida / EBIT</span>
+                  <span class="text-xs text-slate-500 block">(Dívida Bruta − Caixa) ÷ EBIT (12M)</span>
+                </div>
+                <span class="text-lg font-bold text-slate-900 tabular-nums">
+                  {{ stock.netDebtToEbit !== null && stock.netDebtToEbit !== undefined ? (stock.netDebtToEbit | number:'1.2-2':'pt-BR') : 'Não se aplica' }}
+                </span>
               </div>
-              <span class="text-lg font-bold text-slate-900 tabular-nums">
-                {{ stock.netDebtToEbitda !== null && stock.netDebtToEbitda !== undefined ? (stock.netDebtToEbitda | number:'1.2-2':'pt-BR') + 'x' : '0.85x' }}
-              </span>
+              <div class="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                <span>EBIT (12M):</span>
+                <strong class="font-mono text-slate-700">{{ stock.ebitFormatted || 'Não se aplica' }}</strong>
+              </div>
             </div>
           </div>
         </div>

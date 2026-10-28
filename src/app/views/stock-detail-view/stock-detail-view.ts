@@ -121,7 +121,7 @@ export interface IndicatorHealth {
                     {{ stock.ticker }}
                   </h1>
                   <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                    B3 (Brasil)
+                    {{ stock.sector || 'B3 (Brasil)' }}
                   </span>
                   @if (stock.cachedAt) {
                     <span class="text-[11px] text-slate-500 flex items-center gap-1" title="Cache Caffeine: 15 min">
@@ -191,15 +191,15 @@ export interface IndicatorHealth {
               </span>
             </div>
             <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-              <span class="text-slate-500 font-medium block">Volume (24h)</span>
+              <span class="text-slate-500 font-medium block">Volume Financeiro</span>
               <span class="text-sm font-bold text-slate-900 tabular-nums block mt-0.5">
-                {{ stock.volume24h || 'R$ 720 Mi' }}
+                {{ stock.volume24h || 'N/A' }}
               </span>
             </div>
             <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
               <span class="text-slate-500 font-medium block">Valor de Mercado</span>
               <span class="text-sm font-bold text-slate-900 tabular-nums block mt-0.5">
-                {{ stock.marketCap || 'R$ 180 Bi' }}
+                {{ stock.marketCap || 'N/A' }}
               </span>
             </div>
           </div>
@@ -313,125 +313,196 @@ export interface IndicatorHealth {
       <!-- 4. PAINEL DE INDICADORES FUNDAMENTALISTAS (STATUS INVEST STYLE)       -->
       <!-- ===================================================================== -->
       <section class="space-y-3">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
               <mat-icon class="text-base text-blue-600">bar_chart</mat-icon>
-              Múltiplos Fundamentalistas & Valuation
+              Múltiplos Fundamentalistas & Valuation (LTM / ITR CVM)
             </h2>
-            <p class="text-xs text-slate-500">Métricas financeiras calculadas com base nos demonstrativos oficiais</p>
+            <p class="text-xs text-slate-500">
+              Equações fundamentalistas recalculadas sobre a cotação atual e demonstrativos de 12 meses (Padrão Status Invest / Fundamentus)
+            </p>
           </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Favorável
-            </span>
-            <span class="inline-flex items-center gap-1 text-slate-600 font-medium">
-              <span class="w-2 h-2 rounded-full bg-slate-400"></span> Neutro
-            </span>
-            <span class="inline-flex items-center gap-1 text-rose-700 font-medium">
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Atenção
-            </span>
-          </div>
+          
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <!-- P/L -->
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: P/L = Cotação Atual / LPA (Lucro por Ação 12M)">
             <div class="flex items-start justify-between">
               <div>
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">P/L</span>
-                <span class="text-[11px] text-slate-400">Preço / Lucro</span>
+                <span class="text-[11px] text-slate-400">Cotação ÷ LPA (12M)</span>
               </div>
-              <span [class]="plHealth().badgeClass" class="px-2 py-0.5 rounded text-[11px] font-semibold border">
-                {{ plHealth().badgeLabel }}
-              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200">Múltiplo</span>
             </div>
             <div class="mt-3">
-              <span [class]="plHealth().valueClass" class="text-2xl font-bold tabular-nums">
-                {{ (currentStock()?.priceEarnings !== null && currentStock()?.priceEarnings !== undefined) ? (currentStock()!.priceEarnings! | number:'1.2-2':'pt-BR') : '4,82' }}
+              <span class="text-2xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.priceEarnings !== null && currentStock()?.priceEarnings !== undefined) ? (currentStock()!.priceEarnings! | number:'1.2-2':'pt-BR') : '-' }}
               </span>
-              <p class="text-[11px] text-slate-500 mt-1">Tempo em anos para reaver o capital investido</p>
+              <p class="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                <span>LPA (12M):</span>
+                <strong class="font-mono text-slate-700">
+                  {{ (currentStock()?.earningsPerShare !== null && currentStock()?.earningsPerShare !== undefined) ? (currentStock()!.earningsPerShare! | currency:'BRL':'symbol':'1.2-2':'pt-BR') : 'N/A' }}
+                </strong>
+              </p>
             </div>
           </div>
 
           <!-- P/VP -->
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: P/VP = Cotação Atual / VPA (Valor Patrimonial por Ação)">
             <div class="flex items-start justify-between">
               <div>
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">P/VP</span>
-                <span class="text-[11px] text-slate-400">Preço / Valor Patrimonial</span>
+                <span class="text-[11px] text-slate-400">Cotação ÷ VPA</span>
               </div>
-              <span [class]="pvpHealth().badgeClass" class="px-2 py-0.5 rounded text-[11px] font-semibold border">
-                {{ pvpHealth().badgeLabel }}
-              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200">Patrimonial</span>
             </div>
             <div class="mt-3">
-              <span [class]="pvpHealth().valueClass" class="text-2xl font-bold tabular-nums">
-                {{ (currentStock()?.priceToBook !== null && currentStock()?.priceToBook !== undefined) ? (currentStock()!.priceToBook! | number:'1.2-2':'pt-BR') : '1,15' }}
+              <span class="text-2xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.priceToBook !== null && currentStock()?.priceToBook !== undefined) ? (currentStock()!.priceToBook! | number:'1.2-2':'pt-BR') : '-' }}
               </span>
-              <p class="text-[11px] text-slate-500 mt-1">Relação entre cotação e valor patrimonial líquido</p>
+              <p class="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                <span>VPA Contábil:</span>
+                <strong class="font-mono text-slate-700">
+                  {{ (currentStock()?.bookValuePerShare !== null && currentStock()?.bookValuePerShare !== undefined) ? (currentStock()!.bookValuePerShare! | currency:'BRL':'symbol':'1.2-2':'pt-BR') : 'N/A' }}
+                </strong>
+              </p>
             </div>
           </div>
 
           <!-- Dividend Yield -->
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: DY = (Proventos pagos por ação nos últimos 12M / Cotação Atual) × 100">
             <div class="flex items-start justify-between">
               <div>
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">DY (12M)</span>
-                <span class="text-[11px] text-slate-400">Dividend Yield</span>
+                <span class="text-[11px] text-slate-400">Proventos 12M ÷ Cotação</span>
               </div>
-              <span [class]="dyHealth().badgeClass" class="px-2 py-0.5 rounded text-[11px] font-semibold border">
-                {{ dyHealth().badgeLabel }}
-              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200">Proventos</span>
             </div>
             <div class="mt-3">
-              <span [class]="dyHealth().valueClass" class="text-2xl font-bold tabular-nums">
-                {{ (currentStock()?.dividendYield !== null && currentStock()?.dividendYield !== undefined) ? (currentStock()!.dividendYield! | number:'1.2-2':'pt-BR') : '14,80' }}%
+              <span class="text-2xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.dividendYield !== null && currentStock()?.dividendYield !== undefined) ? (currentStock()!.dividendYield! | number:'1.2-2':'pt-BR') + '%' : '-' }}
               </span>
-              <p class="text-[11px] text-slate-500 mt-1">Proventos distribuídos nos últimos 12 meses</p>
+              <p class="text-[11px] text-slate-500 mt-1">Proventos acumulados nos últimos 12 meses</p>
             </div>
           </div>
 
           <!-- ROE -->
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: ROE = (Lucro Líquido 12M / Patrimônio Líquido) × 100">
             <div class="flex items-start justify-between">
               <div>
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">ROE</span>
-                <span class="text-[11px] text-slate-400">Retorno sobre o PL</span>
+                <span class="text-[11px] text-slate-400">Lucro Líq. 12M ÷ Patrimônio Líq.</span>
               </div>
-              <span [class]="roeHealth().badgeClass" class="px-2 py-0.5 rounded text-[11px] font-semibold border">
-                {{ roeHealth().badgeLabel }}
-              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200">Rentabilidade</span>
             </div>
             <div class="mt-3">
-              <span [class]="roeHealth().valueClass" class="text-2xl font-bold tabular-nums">
-                {{ (currentStock()?.returnOnEquity !== null && currentStock()?.returnOnEquity !== undefined) ? (currentStock()!.returnOnEquity! | number:'1.2-2':'pt-BR') : '24,12' }}%
+              <span class="text-2xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.returnOnEquity !== null && currentStock()?.returnOnEquity !== undefined) ? (currentStock()!.returnOnEquity! | number:'1.2-2':'pt-BR') + '%' : '-' }}
               </span>
-              <p class="text-[11px] text-slate-500 mt-1">Capacidade de gerar valor com recursos próprios</p>
+              <p class="text-[11px] text-slate-500 mt-1">Rentabilidade sobre o Patrimônio Líquido</p>
             </div>
           </div>
         </div>
 
-        <!-- Indicadores Secundários: Margem Líquida & Dívida/EBITDA -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+        <!-- Indicadores Secundários: Margem Líquida, Dívida Líq./EBIT, ROIC & Margem EBIT, e Preço Justo Graham -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+          <!-- Margem Líquida -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: Margem Líquida = (Lucro Líquido 12M / Receita Líquida 12M) × 100">
             <div>
               <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Margem Líquida</span>
-              <span class="text-[11px] text-slate-400">Eficiência da receita líquida convertida em lucro</span>
+              <span class="text-[11px] text-slate-400">Lucro Líq. 12M ÷ Receita Líq. 12M</span>
             </div>
-            <span class="text-xl font-bold text-slate-900 tabular-nums">
-              {{ (currentStock()?.netMargin !== null && currentStock()?.netMargin !== undefined) ? (currentStock()!.netMargin! | number:'1.1-1':'pt-BR') : '22,4' }}%
-            </span>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span class="text-xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.netMargin !== null && currentStock()?.netMargin !== undefined) ? (currentStock()!.netMargin! | number:'1.2-2':'pt-BR') + '%' : 'N/A' }}
+              </span>
+              <span class="text-[11px] text-slate-400">Eficiência DRE</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 flex items-center justify-between border-t border-slate-100 pt-1">
+              <span>Margem EBIT:</span>
+              <strong class="font-mono text-slate-700">
+                {{ (currentStock()?.ebitMargin !== null && currentStock()?.ebitMargin !== undefined) ? (currentStock()!.ebitMargin! | number:'1.2-2':'pt-BR') + '%' : 'Não se aplica' }}
+              </strong>
+            </p>
           </div>
 
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+          <!-- Dívida Líquida / EBIT (Opção 1 Recomendada) -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação: (Dívida Bruta - Disponibilidades) / EBIT 12M">
             <div>
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Dívida Líq. / EBITDA</span>
-              <span class="text-[11px] text-slate-400">Alavancagem e endividamento corporativo</span>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Dívida Líq. / EBIT</span>
+              <span class="text-[11px] text-slate-400">(Dív. Bruta − Caixa) ÷ EBIT 12M</span>
             </div>
-            <span class="text-xl font-bold text-slate-900 tabular-nums">
-              {{ (currentStock()?.netDebtToEbitda !== null && currentStock()?.netDebtToEbitda !== undefined) ? (currentStock()!.netDebtToEbitda! | number:'1.2-2':'pt-BR') : '0,85' }}x
-            </span>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span class="text-xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.netDebtToEbit !== null && currentStock()?.netDebtToEbit !== undefined) ? (currentStock()!.netDebtToEbit! | number:'1.2-2':'pt-BR') : 'Não se aplica' }}
+              </span>
+              <span class="text-[11px] text-slate-400">
+                @if (currentStock()?.netDebtToEbit !== null && currentStock()?.netDebtToEbit !== undefined) {
+                  {{ currentStock()!.netDebtToEbit! < 0 ? 'Caixa Líquido' : 'Alavancagem' }}
+                } @else {
+                  Setor Fin. / FII
+                }
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 flex items-center justify-between border-t border-slate-100 pt-1">
+              <span>EBIT (12M):</span>
+              <strong class="font-mono text-slate-700">
+                {{ currentStock()?.ebitFormatted || 'Não se aplica' }}
+              </strong>
+            </p>
+          </div>
+
+          <!-- ROIC & Margem EBIT (Opção 1 Recomendada) -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="ROIC = Retorno sobre o Capital Investido (NOPAT / Capital Investido)">
+            <div>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">ROIC</span>
+              <span class="text-[11px] text-slate-400">Retorno s/ Capital Investido</span>
+            </div>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span class="text-xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.roic !== null && currentStock()?.roic !== undefined) ? (currentStock()!.roic! | number:'1.2-2':'pt-BR') + '%' : 'Não se aplica' }}
+              </span>
+              <span class="text-[11px] text-slate-400">
+                @if (currentStock()?.roic !== null && currentStock()?.roic !== undefined) {
+                  Capital Alocado
+                } @else {
+                  Setor Fin. / FII
+                }
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 flex items-center justify-between border-t border-slate-100 pt-1">
+              <span>Margem Oper. (EBIT):</span>
+              <strong class="font-mono text-slate-700">
+                {{ (currentStock()?.ebitMargin !== null && currentStock()?.ebitMargin !== undefined) ? (currentStock()!.ebitMargin! | number:'1.2-2':'pt-BR') + '%' : 'Não se aplica' }}
+              </strong>
+            </p>
+          </div>
+
+          <!-- Valor Intrínseco de Graham (Neutro) -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between" title="Equação de Benjamin Graham: VI = √(22,5 × LPA × VPA)">
+            <div>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Valor Intrínseco (Graham)</span>
+              <span class="text-[11px] text-slate-400">√(22,5 × LPA × VPA)</span>
+            </div>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span class="text-xl font-bold text-slate-900 tabular-nums">
+                {{ (currentStock()?.grahamFairPrice !== null && currentStock()?.grahamFairPrice !== undefined) ? (currentStock()!.grahamFairPrice! | currency:'BRL':'symbol':'1.2-2':'pt-BR') : 'Não se aplica' }}
+              </span>
+              <span class="text-[11px] text-slate-400">Fórmula Graham</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 flex items-center justify-between border-t border-slate-100 pt-1">
+              <span>Margem de Segurança:</span>
+              @if (currentStock()?.grahamFairPrice && currentStock()?.regularMarketPrice) {
+                @let upside = ((currentStock()!.grahamFairPrice! - currentStock()!.regularMarketPrice) / currentStock()!.regularMarketPrice) * 100;
+                <strong class="font-mono text-slate-700 tabular-nums">
+                  {{ upside >= 0 ? '+' : '' }}{{ upside | number:'1.2-2':'pt-BR' }}%
+                </strong>
+              } @else {
+                <strong class="font-mono text-slate-700">Não se aplica</strong>
+              }
+            </p>
           </div>
         </div>
       </section>
