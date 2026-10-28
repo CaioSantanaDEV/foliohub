@@ -27,7 +27,7 @@ class PortfolioServiceTest {
     private StockTransactionRepository stockTransactionRepository;
 
     @Mock
-    private MarketDataService marketDataService;
+    private StockService stockService;
 
     @Mock
     private com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository;

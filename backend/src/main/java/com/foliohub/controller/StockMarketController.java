@@ -1,7 +1,7 @@
 package com.foliohub.controller;
 
 import com.foliohub.domain.dto.StockQuoteDto;
-import com.foliohub.service.MarketDataService;
+import com.foliohub.service.StockService;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class StockMarketController {
 
-    private final MarketDataService marketDataService;
+    private final StockService stockService;
 
-    public StockMarketController(MarketDataService marketDataService) {
-        this.marketDataService = marketDataService;
+    public StockMarketController(StockService stockService) {
+        this.stockService = stockService;
     }
 
     @GetMapping("/{ticker}")
@@ -27,7 +27,7 @@ public class StockMarketController {
             )
             String ticker
     ) {
-        StockQuoteDto quote = marketDataService.getStockQuote(ticker.trim().toUpperCase());
+        StockQuoteDto quote = stockService.getStockQuote(ticker.trim().toUpperCase());
         return ResponseEntity.ok(quote);
     }
 }

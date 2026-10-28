@@ -6,7 +6,10 @@ import com.foliohub.domain.dto.StockPositionDetailDto;
 import com.foliohub.domain.dto.StockQuoteDto;
 import com.foliohub.domain.model.StockTransaction;
 import com.foliohub.domain.model.enums.TransactionType;
+import com.foliohub.repository.FixedIncomePositionRepository;
 import com.foliohub.repository.StockTransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +21,17 @@ import java.util.stream.Collectors;
 @Service
 public class PortfolioService {
 
+    private static final Logger log = LoggerFactory.getLogger(PortfolioService.class);
+
     private final StockTransactionRepository stockTransactionRepository;
-    private final MarketDataService marketDataService;
-    private final com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository;
+    private final StockService stockService;
+    private final FixedIncomePositionRepository fixedIncomePositionRepository;
 
     public PortfolioService(StockTransactionRepository stockTransactionRepository,
-                            MarketDataService marketDataService,
-                            com.foliohub.repository.FixedIncomePositionRepository fixedIncomePositionRepository) {
+                            StockService stockService,
+                            FixedIncomePositionRepository fixedIncomePositionRepository) {
         this.stockTransactionRepository = stockTransactionRepository;
-        this.marketDataService = marketDataService;
+        this.stockService = stockService;
         this.fixedIncomePositionRepository = fixedIncomePositionRepository;
     }
 
@@ -162,6 +167,11 @@ public class PortfolioService {
         );
     }
 
+    /**
+     * Consolidação Patrimonial dinâmica:
+     * O preço atual (currentPrice) e o valor de mercado (totalCurrentValue) de cada ação
+     * são recalculados dinamicamente com base nas cotações em tempo real da Brapi.
+     */
     @Transactional(readOnly = true)
     public PortfolioConsolidationDto consolidatePortfolio(UUID userId) {
         List<StockTransaction> allTransactions = stockTransactionRepository.findByUserIdOrderByOperationDateDesc(userId);
@@ -177,18 +187,10 @@ public class PortfolioService {
             String ticker = entry.getKey();
             List<StockTransaction> tickerTxs = entry.getValue();
 
-            BigDecimal currentPrice;
-            String companyName;
-
-            try {
-                StockQuoteDto quote = marketDataService.getStockQuote(ticker);
-                currentPrice = quote.currentPrice();
-                companyName = quote.companyName();
-            } catch (Exception ex) {
-                BigDecimal fallbackPM = calculateWeightedAveragePrice(tickerTxs);
-                currentPrice = fallbackPM;
-                companyName = ticker;
-            }
+            // Consulta dinâmica na Brapi sem mascaramento de dados
+            StockQuoteDto quote = stockService.getStockQuote(ticker);
+            BigDecimal currentPrice = quote.regularMarketPrice() != null ? quote.regularMarketPrice() : quote.currentPrice();
+            String companyName = quote.shortName() != null ? quote.shortName() : quote.companyName();
 
             StockPositionDetailDto position = calculatePositionForTicker(ticker, tickerTxs, currentPrice, companyName);
 

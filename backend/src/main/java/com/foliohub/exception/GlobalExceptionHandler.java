@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
     private static final URI URI_VALIDATION_ERROR = URI.create("https://foliohub.com/errors/invalid-parameters");
     private static final URI URI_BUSINESS_RULE = URI.create("https://foliohub.com/errors/business-rule-violation");
     private static final URI URI_NOT_FOUND = URI.create("https://foliohub.com/errors/resource-not-found");
-    private static final URI URI_MARKET_DATA = URI.create("https://foliohub.com/errors/market-data-unavailable");
+    private static final URI URI_BAD_GATEWAY = URI.create("https://foliohub.com/errors/market-data-unavailable");
     private static final URI URI_INTERNAL_ERROR = URI.create("https://foliohub.com/errors/internal-server-error");
 
     public record InvalidParameterDetail(String field, String message, Object rejectedValue) {}
@@ -91,16 +91,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MarketDataUnavailableException.class)
     public ResponseEntity<ProblemDetail> handleMarketDataUnavailable(MarketDataUnavailableException ex,
                                                                      HttpServletRequest request) {
-        log.warn("Serviço de cotações externas indisponível: {}", ex.getMessage());
+        log.warn("Serviço de cotações externas indisponível (HTTP 502 Bad Gateway): {}", ex.getMessage());
 
-        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
-        problem.setType(URI_MARKET_DATA);
-        problem.setTitle("Serviço de mercado financeiro indisponível");
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_GATEWAY);
+        problem.setType(URI_BAD_GATEWAY);
+        problem.setTitle("Serviço de mercado financeiro indisponível (Bad Gateway)");
         problem.setDetail(ex.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("timestamp", Instant.now());
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(problem);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

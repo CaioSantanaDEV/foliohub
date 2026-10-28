@@ -183,45 +183,164 @@ const inMemoryFixedIncome: FixedIncomeRecord[] = [
   },
 ];
 
-const b3MarketData: Record<string, { price: number; change: number; company: string; pl: number; pvp: number; dy: number; roe: number }> = {
-  PETR4: { price: 38.45, change: 1.45, company: 'Petrobras PN', pl: 4.82, pvp: 1.15, dy: 14.8, roe: 24.12 },
-  VALE3: { price: 62.3, change: -0.68, company: 'Vale S.A. ON', pl: 6.15, pvp: 1.32, dy: 9.2, roe: 21.45 },
-  WEGE3: { price: 51.15, change: 0.95, company: 'WEG S.A. ON', pl: 32.4, pvp: 10.85, dy: 2.15, roe: 34.5 },
-  ITUB4: { price: 34.8, change: 0.32, company: 'Itaú Unibanco PN', pl: 8.9, pvp: 1.68, dy: 7.45, roe: 21.2 },
-  BBAS3: { price: 28.9, change: 1.1, company: 'Banco do Brasil ON', pl: 4.45, pvp: 0.88, dy: 10.15, roe: 21.8 },
-  MXRF11: { price: 10.25, change: 0.1, company: 'Maxi Renda FII', pl: 11.2, pvp: 1.01, dy: 12.45, roe: 9.8 },
-};
+const BRAPI_TOKEN = process.env['BRAPI_TOKEN'] || process.env['foliohub.integration.brapi.token'] || '';
+
+class HttpError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
+interface BrapiRawResult {
+  symbol?: string;
+  shortName?: string;
+  longName?: string;
+  regularMarketPrice?: number;
+  regularMarketChangePercent?: number;
+  regularMarketTime?: string;
+  regularMarketDayLow?: number;
+  regularMarketDayHigh?: number;
+  priceEarnings?: number;
+  priceToBook?: number;
+  dividendYield?: number;
+  returnOnEquity?: number;
+}
+
+interface BrapiApiResponse {
+  error?: boolean;
+  message?: string;
+  results?: BrapiRawResult[];
+}
+
+interface CachedStockQuote {
+  symbol: string;
+  ticker: string;
+  shortName: string;
+  companyName: string;
+  regularMarketPrice: number;
+  currentPrice: number;
+  regularMarketChangePercent: number;
+  regularMarketTime: string;
+  regularMarketDayLow: number;
+  regularMarketDayHigh: number;
+  priceEarnings?: number;
+  priceToBook?: number;
+  dividendYield?: number;
+  returnOnEquity?: number;
+  cachedAt: string;
+}
+
+const quoteMemoryCache = new Map<string, { data: CachedStockQuote; expiresAt: number }>();
+const QUOTE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos (espelhando Spring Cache com Caffeine)
+
+async function fetchBrapiStockQuote(ticker: string): Promise<CachedStockQuote> {
+  const normalizedTicker = ticker.trim().toUpperCase();
+
+  const cached = quoteMemoryCache.get(normalizedTicker);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+
+  const tokenParam = BRAPI_TOKEN ? `&token=${encodeURIComponent(BRAPI_TOKEN)}` : '';
+  const url = `https://brapi.dev/api/quote/${encodeURIComponent(normalizedTicker)}?range=1d&interval=1d&fundamental=true${tokenParam}`;
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'FolioHub/1.0',
+      },
+      signal: AbortSignal.timeout(7000),
+    });
+  } catch (err: unknown) {
+    throw new HttpError(
+      `Serviço de cotações externas (Brapi) temporariamente inacessível ou tempo limite excedido: ${err instanceof Error ? err.message : String(err)}`,
+      502
+    );
+  }
+
+  if (response.status === 404) {
+    throw new HttpError(`O ativo '${normalizedTicker}' não foi localizado no catálogo da B3.`, 404);
+  }
+
+  if (!response.ok) {
+    throw new HttpError(`A API externa da Brapi respondeu com erro de gateway (HTTP ${response.status}).`, 502);
+  }
+
+  let json: BrapiApiResponse;
+  try {
+    json = (await response.json()) as BrapiApiResponse;
+  } catch {
+    throw new HttpError('Falha ao processar a resposta JSON fornecida pela Brapi.', 502);
+  }
+
+  if (json.error || !json.results || !json.results.length) {
+    const detail = json.message || `Ativo '${normalizedTicker}' não foi localizado na B3.`;
+    throw new HttpError(detail, 404);
+  }
+
+  const raw = json.results[0];
+  const shortName = raw.shortName || raw.longName || normalizedTicker;
+  const price = Number(raw.regularMarketPrice ?? 0);
+
+  const mapped: CachedStockQuote = {
+    symbol: raw.symbol || normalizedTicker,
+    ticker: raw.symbol || normalizedTicker,
+    shortName,
+    companyName: shortName,
+    regularMarketPrice: price,
+    currentPrice: price,
+    regularMarketChangePercent: Number(raw.regularMarketChangePercent ?? 0),
+    regularMarketTime: raw.regularMarketTime || new Date().toISOString(),
+    regularMarketDayLow: Number(raw.regularMarketDayLow ?? price),
+    regularMarketDayHigh: Number(raw.regularMarketDayHigh ?? price),
+    priceEarnings: raw.priceEarnings != null ? Number(raw.priceEarnings) : undefined,
+    priceToBook: raw.priceToBook != null ? Number(raw.priceToBook) : undefined,
+    dividendYield: raw.dividendYield != null ? Number(raw.dividendYield) : undefined,
+    returnOnEquity: raw.returnOnEquity != null ? Number(raw.returnOnEquity) : undefined,
+    cachedAt: new Date().toISOString(),
+  };
+
+  quoteMemoryCache.set(normalizedTicker, { data: mapped, expiresAt: Date.now() + QUOTE_CACHE_TTL_MS });
+  return mapped;
+}
 
 // 1. GET /api/stocks/:ticker
-app.get('/api/stocks/:ticker', (req, res): void => {
+app.get('/api/stocks/:ticker', async (req, res): Promise<void> => {
   const tickerParam = req.params['ticker'];
-  const ticker = tickerParam ? tickerParam.toUpperCase() : '';
-  const stock = b3MarketData[ticker];
+  const ticker = tickerParam ? tickerParam.toUpperCase().trim() : '';
 
-  if (!stock) {
-    res.status(404).json({
-      type: 'https://api.foliohub.com/errors/not-found',
-      title: 'Ativo Não Encontrado',
-      status: 404,
-      detail: `O ticker '${ticker}' não foi localizado no catálogo da B3.`,
+  if (!/^[A-Za-z0-9]{4,6}$/.test(ticker)) {
+    res.status(400).json({
+      type: 'https://foliohub.com/errors/invalid-parameters',
+      title: 'Restrição de parâmetro violada',
+      status: 400,
+      detail: 'O ticker informado não segue o padrão da B3 (ex: PETR4, VALE3, WEGE3, MXRF11).',
+      instance: req.originalUrl,
       timestamp: new Date().toISOString(),
     });
     return;
   }
 
-  res.json({
-    ticker,
-    companyName: stock.company,
-    regularMarketPrice: stock.price,
-    regularMarketChangePercent: stock.change,
-    regularMarketDayLow: Number((stock.price * 0.985).toFixed(2)),
-    regularMarketDayHigh: Number((stock.price * 1.015).toFixed(2)),
-    priceEarnings: stock.pl,
-    priceToBook: stock.pvp,
-    dividendYield: stock.dy,
-    returnOnEquity: stock.roe,
-    cachedAt: new Date().toISOString(),
-  });
+  try {
+    const quote = await fetchBrapiStockQuote(ticker);
+    res.json(quote);
+  } catch (err: unknown) {
+    const statusCode = err instanceof HttpError ? err.status : 502;
+    const isNotFound = statusCode === 404;
+    const message = err instanceof Error ? err.message : 'Erro ao consultar cotação externa.';
+
+    res.status(statusCode).json({
+      type: isNotFound ? 'https://foliohub.com/errors/resource-not-found' : 'https://foliohub.com/errors/market-data-unavailable',
+      title: isNotFound ? 'Recurso Não Encontrado' : 'Serviço de mercado financeiro indisponível (Bad Gateway)',
+      status: statusCode,
+      detail: message,
+      instance: req.originalUrl,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // 2. GET /api/macro-indicators
@@ -319,53 +438,177 @@ app.post('/api/portfolio/fixed-income', (req, res): void => {
   res.status(201).json(newRecord);
 });
 
-// 7. GET /api/portfolio/summary
-app.get('/api/portfolio/summary', (req, res): void => {
-  const userId = (req.query['userId'] as string | undefined) || defaultUserId;
+interface StockPositionDetail {
+  ticker: string;
+  companyName: string;
+  quantity: number;
+  averagePrice: number;
+  currentPrice: number;
+  totalInvested: number;
+  currentMarketValue: number;
+  totalCurrentValue: number;
+  profitLossAmount: number;
+  profitLossPercentage: number;
+  portfolioAllocationPercentage: number;
+}
+
+// Helper function to consolidate stock portfolio dynamically with Brapi quotes
+async function consolidateUserStockPortfolio(userId: string) {
   const userTxs = inMemoryStockTxs.filter((t) => t.userId === userId);
-  const userFi = inMemoryFixedIncome.filter((f) => f.userId === userId && f.active);
+  const tickers = Array.from(new Set(userTxs.map((t) => t.ticker.toUpperCase())));
 
-  const totalFiCurrent = userFi.reduce((acc, f) => acc + f.currentAmount, 0);
-  const totalFiInvested = userFi.reduce((acc, f) => acc + f.investedAmount, 0);
+  let totalInvested = 0;
+  let totalMarketValue = 0;
+  const positions: StockPositionDetail[] = [];
 
-  let totalStocksCurrent = 0;
-  let totalStocksInvested = 0;
+  for (const ticker of tickers) {
+    const tickerTxs = userTxs
+      .filter((t) => t.ticker.toUpperCase() === ticker)
+      .sort((a, b) => a.operationDate.localeCompare(b.operationDate));
 
-  const stockMap = new Map<string, number>();
-  for (const tx of userTxs) {
-    const cur = stockMap.get(tx.ticker) || 0;
-    stockMap.set(tx.ticker, tx.type === 'COMPRA' ? cur + tx.quantity : Math.max(0, cur - tx.quantity));
-    if (tx.type === 'COMPRA') totalStocksInvested += tx.totalValue;
+    let runningQty = 0;
+    let runningCost = 0;
+    let avgPrice = 0;
+
+    for (const tx of tickerTxs) {
+      if (tx.type === 'COMPRA') {
+        const txCost = tx.quantity * tx.unitPrice + (tx.brokerageFees || 0);
+        runningQty += tx.quantity;
+        runningCost += txCost;
+        if (runningQty > 0) {
+          avgPrice = runningCost / runningQty;
+        }
+      } else if (tx.type === 'VENDA') {
+        runningQty -= tx.quantity;
+        if (runningQty <= 0) {
+          runningQty = 0;
+          runningCost = 0;
+          avgPrice = 0;
+        } else {
+          runningCost = runningQty * avgPrice;
+        }
+      }
+    }
+
+    if (runningQty > 0) {
+      // Dynamic live quote from Brapi
+      const quote = await fetchBrapiStockQuote(ticker);
+      const currentPrice = quote.regularMarketPrice;
+      const currentMarketValue = Number((runningQty * currentPrice).toFixed(2));
+      const profitLossAmount = Number((currentMarketValue - runningCost).toFixed(2));
+      const profitLossPercentage = runningCost > 0 ? Number(((profitLossAmount / runningCost) * 100).toFixed(2)) : 0;
+
+      totalInvested += runningCost;
+      totalMarketValue += currentMarketValue;
+
+      positions.push({
+        ticker,
+        companyName: quote.companyName || quote.shortName || ticker,
+        quantity: runningQty,
+        averagePrice: Number(avgPrice.toFixed(4)),
+        currentPrice: Number(currentPrice.toFixed(2)),
+        totalInvested: Number(runningCost.toFixed(2)),
+        currentMarketValue,
+        totalCurrentValue: currentMarketValue,
+        profitLossAmount,
+        profitLossPercentage,
+        portfolioAllocationPercentage: 0,
+      });
+    }
   }
 
-  for (const [ticker, qty] of stockMap.entries()) {
-    const price = b3MarketData[ticker]?.price || 20.0;
-    totalStocksCurrent += qty * price;
+  // Calculate allocation weights
+  for (const pos of positions) {
+    pos.portfolioAllocationPercentage =
+      totalMarketValue > 0 ? Number(((pos.currentMarketValue / totalMarketValue) * 100).toFixed(2)) : 0;
   }
 
-  const totalNetWorth = Number((totalStocksCurrent + totalFiCurrent).toFixed(2));
-  const totalInvested = Number((totalStocksInvested + totalFiInvested).toFixed(2));
-  const totalProfitLoss = Number((totalNetWorth - totalInvested).toFixed(2));
-  const totalProfitLossPercent = totalInvested > 0 ? Number(((totalProfitLoss / totalInvested) * 100).toFixed(2)) : 0;
+  positions.sort((a, b) => b.currentMarketValue - a.currentMarketValue);
 
-  const stocksPercent = totalNetWorth > 0 ? Number(((totalStocksCurrent / totalNetWorth) * 100).toFixed(1)) : 50;
-  const fixedIncomePercent = totalNetWorth > 0 ? Number(((totalFiCurrent / totalNetWorth) * 100).toFixed(1)) : 50;
+  const totalProfitLossAmount = Number((totalMarketValue - totalInvested).toFixed(2));
+  const totalProfitLossPercentage = totalInvested > 0 ? Number(((totalProfitLossAmount / totalInvested) * 100).toFixed(2)) : 0;
 
-  res.json({
+  return {
     userId,
-    totalNetWorth,
-    totalInvested,
-    totalProfitLoss,
-    totalProfitLossPercent,
-    allocation: {
-      stocksPercent,
-      fixedIncomePercent,
-      stocksTotal: Number(totalStocksCurrent.toFixed(2)),
-      fixedIncomeTotal: Number(totalFiCurrent.toFixed(2)),
-    },
-    stocksCount: stockMap.size,
-    fixedIncomeCount: userFi.length,
-  });
+    totalInvested: Number(totalInvested.toFixed(2)),
+    totalMarketValue: Number(totalMarketValue.toFixed(2)),
+    totalCurrentValue: Number(totalMarketValue.toFixed(2)),
+    totalProfitLossAmount,
+    totalProfitLossPercentage,
+    positions,
+    consolidatedAt: new Date().toISOString(),
+  };
+}
+
+// 7. GET /api/portfolio/consolidation
+app.get('/api/portfolio/consolidation', async (req, res): Promise<void> => {
+  const userId = (req.query['userId'] as string | undefined) || defaultUserId;
+  try {
+    const consolidation = await consolidateUserStockPortfolio(userId);
+    res.json(consolidation);
+  } catch (err: unknown) {
+    const statusCode = err instanceof HttpError ? err.status : 502;
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(statusCode).json({
+      type: statusCode === 404 ? 'https://foliohub.com/errors/resource-not-found' : 'https://foliohub.com/errors/market-data-unavailable',
+      title: statusCode === 404 ? 'Ativo Não Encontrado' : 'Serviço de mercado financeiro indisponível (Bad Gateway)',
+      status: statusCode,
+      detail: `Falha na consolidação de carteira: ${message}`,
+      instance: req.originalUrl,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+// 8. GET /api/portfolio/summary
+app.get('/api/portfolio/summary', async (req, res): Promise<void> => {
+  const userId = (req.query['userId'] as string | undefined) || defaultUserId;
+
+  try {
+    const stockConsolidation = await consolidateUserStockPortfolio(userId);
+    const userFi = inMemoryFixedIncome.filter((f) => f.userId === userId && f.active);
+
+    const totalFiCurrent = userFi.reduce((acc, f) => acc + f.currentAmount, 0);
+    const totalFiInvested = userFi.reduce((acc, f) => acc + f.investedAmount, 0);
+
+    const totalStocksCurrent = stockConsolidation.totalMarketValue;
+    const totalStocksInvested = stockConsolidation.totalInvested;
+
+    const totalNetWorth = Number((totalStocksCurrent + totalFiCurrent).toFixed(2));
+    const totalInvested = Number((totalStocksInvested + totalFiInvested).toFixed(2));
+    const totalProfitLoss = Number((totalNetWorth - totalInvested).toFixed(2));
+    const totalProfitLossPercent = totalInvested > 0 ? Number(((totalProfitLoss / totalInvested) * 100).toFixed(2)) : 0;
+
+    const stocksPercent = totalNetWorth > 0 ? Number(((totalStocksCurrent / totalNetWorth) * 100).toFixed(1)) : 50;
+    const fixedIncomePercent = totalNetWorth > 0 ? Number(((totalFiCurrent / totalNetWorth) * 100).toFixed(1)) : 50;
+
+    res.json({
+      userId,
+      totalNetWorth,
+      totalInvested,
+      totalProfitLoss,
+      totalProfitLossPercent,
+      allocation: {
+        stocksPercent,
+        fixedIncomePercent,
+        stocksTotal: Number(totalStocksCurrent.toFixed(2)),
+        fixedIncomeTotal: Number(totalFiCurrent.toFixed(2)),
+      },
+      stocksCount: stockConsolidation.positions.length,
+      fixedIncomeCount: userFi.length,
+    });
+  } catch (err: unknown) {
+    const statusCode = err instanceof HttpError ? err.status : 502;
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(statusCode).json({
+      type: statusCode === 404 ? 'https://foliohub.com/errors/resource-not-found' : 'https://foliohub.com/errors/market-data-unavailable',
+      title: statusCode === 404 ? 'Ativo Não Encontrado' : 'Serviço de mercado financeiro indisponível (Bad Gateway)',
+      status: statusCode,
+      detail: `Falha ao obter sumário patrimonial consolidado: ${message}`,
+      instance: req.originalUrl,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // 8. POST /api/calculator/fixed-income

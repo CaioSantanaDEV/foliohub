@@ -278,6 +278,12 @@ export class PortfolioStateService {
       tap(({ transactions, fixedIncome }) => {
         if (transactions.length > 0) {
           this.transactions.set(transactions);
+          const uniqueTickers = Array.from(new Set(transactions.map((t) => t.ticker.toUpperCase())));
+          for (const ticker of uniqueTickers) {
+            this.fetchStockQuote(ticker).subscribe({
+              error: (err: unknown) => console.debug('Cotação inicial não obtida:', ticker, err),
+            });
+          }
         }
         if (fixedIncome.length > 0) {
           this.fixedIncomePositions.set(fixedIncome);
@@ -295,6 +301,9 @@ export class PortfolioStateService {
     return this.transactionService.createTransaction(dto).pipe(
       tap((created) => {
         this.transactions.update((list) => [created, ...list]);
+        this.fetchStockQuote(created.ticker).subscribe({
+          error: (err: unknown) => console.debug('Cotação após aporte não obtida:', created.ticker, err),
+        });
         this.lastSyncAt.set(new Date());
       }),
       catchError(() => {
